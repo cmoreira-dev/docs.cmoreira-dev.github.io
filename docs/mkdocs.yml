@@ -1,0 +1,34 @@
+site_name: HomeLab documentation
+copyright: © Copyright 2025-2026 Cmoreira.dev
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sticky_tabs
+    - toc.integrate
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Mudar para modo escuro
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Mudar para modo claro
+nav:
+  - Home: index.md
+  - Kubernetes:
+      - Kubernetes: kubernetes/index.md
+      - Cluster Details Dev: kubernetes/dev.md
+      - Cluster Details Cd: kubernetes/cd.md
+      - Cluster Details Prod: kubernetes/prod.md
+      - Migração Istio → NGINX Gateway Fabric: kubernetes/migration-istio-to-nginx-gateway-fabric.md
+      - Chart genérico de apps (generic-app): kubernetes/generic-app-chart.md
+  - Argo CD: argocd.md
