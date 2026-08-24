@@ -1,7 +1,7 @@
 # Chart genérico de apps (`gitops.generic-app-chart`)
 
 Chart Helm compartilhado (`generic-app`) para workloads próprias do homelab. Cada app
-consumidora (`gitops.<app>`, padel api/ui) o referencia como dependência no seu
+consumidora (`gitops.<app>`, teupadel/sara api/ui) o referencia como dependência no seu
 `Chart.yaml` e fornece só o seu `values.yaml`.
 
 ## Recursos que o chart renderiza
@@ -60,4 +60,4 @@ próprio Secret no seu namespace — sem disputa de ownership entre Applications
 
 Os consumers pinam a versão do chart em `Chart.yaml`/`Chart.lock`. Uma mudança neste repo
 **só chega às apps quando cada consumer der bump + `helm dependency update`**. Consumers
-atuais: `padel-movement` api/ui e `gitops.template`.
+atuais: `teupadel` e `sara` (api/ui) e `gitops.template`.
