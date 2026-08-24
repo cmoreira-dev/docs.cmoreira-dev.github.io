@@ -5,7 +5,9 @@ theme:
   features:
     - navigation.tabs
     - navigation.sticky_tabs
+    - navigation.indexes
     - toc.integrate
+    - content.code.copy
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -13,7 +15,6 @@ theme:
       accent: indigo
       toggle:
         icon: material/brightness-7
-        name: Mudar para modo escuro
 
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
@@ -21,14 +22,79 @@ theme:
       accent: indigo
       toggle:
         icon: material/brightness-4
-        name: Mudar para modo claro
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: pt-BR
+          default: true
+          name: Português (BR)
+          build: true
+        - locale: en
+          name: English
+          build: true
+          nav_translations:
+            Home: Home
+            Arquitetura: Architecture
+            Visão geral: Overview
+            Cluster Kubernetes (Talos): Kubernetes Cluster (Talos)
+            Rede & Ingress: Networking & Ingress
+            Secrets & Segurança: Secrets & Security
+            Infraestrutura como Código: Infrastructure as Code
+            Terragrunt (live-infra): Terragrunt (live-infra)
+            Módulos reutilizáveis: Reusable modules
+            Bootstrap do cluster: Cluster bootstrap
+            GitOps & Platform Engineering: GitOps & Platform Engineering
+            Padrão GitOps: GitOps pattern
+            Catálogo de addons: Addon catalog
+            Chart genérico de apps (generic-app): Generic app chart (generic-app)
+            Template de novo app: New app template
+            Backstage: Backstage
+            Aplicações: Applications
+            teupadel.com: teupadel.com
+            Sara: Sara
+            CI/CD & Deployment: CI/CD & Deployment
+            Build & Registry (ECR): Build & Registry (ECR)
+            Do push ao cluster: From push to cluster
+            Padrões de Repositório: Repository Patterns
+            Argo CD: Argo CD
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
 nav:
   - Home: index.md
-  - Kubernetes:
-      - Kubernetes: kubernetes/index.md
-      - Cluster Details Dev: kubernetes/dev.md
-      - Cluster Details Cd: kubernetes/cd.md
-      - Cluster Details Prod: kubernetes/prod.md
-      - Migração Istio → NGINX Gateway Fabric: kubernetes/migration-istio-to-nginx-gateway-fabric.md
+  - Arquitetura:
+      - Visão geral: architecture/index.md
+      - Cluster Kubernetes (Talos): architecture/cluster.md
+      - Rede & Ingress: architecture/networking.md
+      - Secrets & Segurança: architecture/secrets.md
+  - Infraestrutura como Código:
+      - Terragrunt (live-infra): iac/terragrunt.md
+      - Módulos reutilizáveis: iac/modules.md
+      - Bootstrap do cluster: iac/bootstrap.md
+  - GitOps & Platform Engineering:
+      - Padrão GitOps: gitops/pattern.md
+      - Catálogo de addons: gitops/addons.md
       - Chart genérico de apps (generic-app): kubernetes/generic-app-chart.md
+      - Template de novo app: gitops/template.md
+      - Backstage: gitops/backstage.md
+  - Aplicações:
+      - teupadel.com: apps/teupadel.md
+      - Sara: apps/sara.md
+  - CI/CD & Deployment:
+      - Build & Registry (ECR): cicd/build-registry.md
+      - Do push ao cluster: cicd/deploy-flow.md
+  - Padrões de Repositório: repos.md
   - Argo CD: argocd.md
