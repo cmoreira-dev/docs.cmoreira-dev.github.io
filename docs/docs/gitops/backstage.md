@@ -9,7 +9,7 @@ componentes e serviços da org (catálogo de software), sobre o padrão
 Vários repositórios já carregam um `catalog-info.yaml`, registrando-se no
 catálogo do Backstage:
 
-- Addons: `gitops.cnpg`, `gitops.crossplane`, `gitops.echoserver`,
+- Addons: `gitops.cnpg`, `gitops.echoserver`,
   `gitops.headlamp`, `gitops.template`
 - Infra: `homelab-bootsrap-k3s`
 - Apps: `gitops.local-sara`, `gitops.teupadel.com`

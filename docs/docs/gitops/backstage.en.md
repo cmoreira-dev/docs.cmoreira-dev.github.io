@@ -9,7 +9,7 @@ components and services (software catalog), built on
 Several repositories already carry a `catalog-info.yaml`, registering
 themselves in Backstage's catalog:
 
-- Addons: `gitops.cnpg`, `gitops.crossplane`, `gitops.echoserver`,
+- Addons: `gitops.cnpg`, `gitops.echoserver`,
   `gitops.headlamp`, `gitops.template`
 - Infra: `homelab-bootsrap-k3s`
 - Apps: `gitops.local-sara`, `gitops.teupadel.com`

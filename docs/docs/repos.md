@@ -20,7 +20,7 @@ O prefixo do nome do repositório indica o que ele é e como é operado:
 | Prefixo | Significado | Como é aplicado no ambiente |
 |---|---|---|
 | `gitops.*` | Workload gerenciado por ArgoCD | Auto-descoberto pelo `ApplicationSet/gitops-repos`, sincronizado continuamente |
-| `iac.*` | Estado de infraestrutura viva (Terragrunt) | `terragrunt apply` manual, sob confirmação |
+| `iac.*` | Estado de infraestrutura viva (Terragrunt) | CI: `plan` em PR, `apply` no merge, `drift` nightly (ver [Dois níveis de IaC](iac/tiers.md)) |
 | `api.*` | Serviço de backend | Build de imagem Docker via CI, deploy via um `gitops.*` correspondente |
 | `ui.*` | Aplicação de frontend | Idem — build via CI, deploy via `gitops.*` |
 | `docs.*` | Site de documentação | Build local com MkDocs |
@@ -48,9 +48,9 @@ Duas variações desse padrão coexistem:
   manualmente quando o repo entrega **mais de um componente** (ex.: api + ui no
   mesmo repo), como é o caso de `gitops.teupadel.com` e `gitops.local-sara`.
 - **Addon de terceiros** (`gitops.core-addons`, `gitops.ai-core-addons`,
-  `gitops.cnpg`, `gitops.crossplane`, `gitops.monitoring`, `gitops.headlamp`) —
+  `gitops.cnpg`, `gitops.monitoring`, `gitops.headlamp`) —
   `helm/<addon>/Chart.yaml` depende diretamente do chart upstream do projeto
-  (cert-manager, Crossplane, CNPG, etc.), sem passar pelo chart genérico.
+  (cert-manager, CNPG, Burrito, etc.), sem passar pelo chart genérico.
 
 ## Repos de aplicação (`api.*` / `ui.*`)
 
