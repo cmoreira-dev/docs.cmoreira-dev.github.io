@@ -7,20 +7,24 @@ passar pelo chart genérico (esse é reservado para apps próprias).
 
 | Repo | Addon(s) | O que faz |
 |---|---|---|
-| `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater | Base do cluster — praticamente todo outro `gitops.*` depende de algo daqui (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
+| `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito** | Base do cluster — praticamente todo outro `gitops.*` depende de algo daqui (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
 | `gitops.ai-core-addons` | Ollama, LiteLLM | Serving de LLM local: Ollama roda inferência na GPU, LiteLLM expõe um proxy compatível com a API da OpenAI na frente dele (`llm.cmoreira.dev`) |
 | `gitops.cnpg` | CloudNativePG (operador Postgres) | Operador + primeiro banco consumidor (Backstage) |
-| `gitops.crossplane` | Crossplane | Control plane para provisionamento declarativo de recursos |
 | `gitops.monitoring` | Grafana Alloy, metrics-server | Observabilidade (coleta/telemetria) e métricas para HPA |
 | `gitops.headlamp` | Headlamp | Dashboard web para o cluster (`headlamp.cmoreira.dev`), login via Microsoft Entra ID |
 | `gitops.echoserver` | echoserver | Endpoint de teste para validar roteamento (Gateway API/HTTPRoute) |
 
 ## `gitops.core-addons` em detalhe
 
-O único repo `gitops.*` que também carrega um stack **Terraform** próprio
-(`terraform/`) — provisiona o lado AWS (IAM/OIDC) que sustenta o
-`argocd-image-updater` e o pull de imagens do ECR a partir do cluster,
-complementando o que `iac-aws-ecr-pipeline` provisiona para o lado do CI.
+O único repo `gitops.*` que também carrega um stack **Terraform** próprio,
+organizado em subfolders (cada um um root standalone com sua própria `key` de
+backend):
+
+- `terraform/ecr-pull-iam/` — IAM users para pull de imagem do ECR +
+  `argocd-image-updater` (complementa o `iac-aws-ecr-pipeline` do lado do CI).
+- `terraform/burrito/` — bucket do datastore + IAM users do operador Burrito.
+- `terraform/_modules/{s3,ssm-user}` — módulos repo-local (ver
+  [Módulos reutilizáveis](../iac/modules.md#_modules-do-gitopscore-addons)).
 
 Addons instalados:
 
@@ -35,6 +39,8 @@ Addons instalados:
   agendável
 - **argocd-image-updater** — atualiza automaticamente a tag de imagem nos
   repos `gitops.*` quando uma nova imagem chega ao ECR
+- **[Burrito](burrito.md)** — Tier 2 de IaC: reconcilia OpenTofu/Terragrunt das
+  pastas `terraform/` dos repos GitOps (substituiu o Crossplane)
 
 ## `gitops.ai-core-addons` em detalhe
 
@@ -58,7 +64,7 @@ mesmo padrão de autenticação humana do ArgoCD, ver
 
 ## Registro no Backstage
 
-Vários addons (`gitops.cnpg`, `gitops.crossplane`, `gitops.echoserver`,
-`gitops.headlamp`) têm `catalog-info.yaml`, registrando o componente no
-catálogo do [Backstage](backstage.md) com `type: website`,
-`lifecycle: lab`, e um link para a Application correspondente no ArgoCD.
+Vários addons (`gitops.cnpg`, `gitops.echoserver`, `gitops.headlamp`) têm
+`catalog-info.yaml`, registrando o componente no catálogo do
+[Backstage](backstage.md) com `type: website`, `lifecycle: lab`, e um link para
+a Application correspondente no ArgoCD.

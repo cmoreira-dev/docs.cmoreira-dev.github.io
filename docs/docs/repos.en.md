@@ -19,7 +19,7 @@ The repository name's prefix indicates what it is and how it's operated:
 | Prefix | Meaning | How it's applied in the environment |
 |---|---|---|
 | `gitops.*` | ArgoCD-managed workload | Auto-discovered by `ApplicationSet/gitops-repos`, continuously synced |
-| `iac.*` | Live infrastructure state (Terragrunt) | Manual `terragrunt apply`, under confirmation |
+| `iac.*` | Live infrastructure state (Terragrunt) | CI: `plan` on PR, `apply` on merge, nightly `drift` (see [Two tiers of IaC](iac/tiers.md)) |
 | `api.*` | Backend service | Docker image built via CI, deployed via a matching `gitops.*` |
 | `ui.*` | Frontend application | Same — built via CI, deployed via `gitops.*` |
 | `docs.*` | Documentation site | Built locally with MkDocs |
@@ -48,10 +48,9 @@ Two variations of this pattern coexist:
   component** (e.g. api + ui in the same repo), as is the case for
   `gitops.teupadel.com` and `gitops.local-sara`.
 - **Third-party addon** (`gitops.core-addons`, `gitops.ai-core-addons`,
-  `gitops.cnpg`, `gitops.crossplane`, `gitops.monitoring`,
-  `gitops.headlamp`) — `helm/<addon>/Chart.yaml` depends directly on the
-  upstream chart of the project (cert-manager, Crossplane, CNPG, etc.),
-  bypassing the generic chart.
+  `gitops.cnpg`, `gitops.monitoring`, `gitops.headlamp`) —
+  `helm/<addon>/Chart.yaml` depends directly on the upstream chart of the
+  project (cert-manager, CNPG, Burrito, etc.), bypassing the generic chart.
 
 ## Application repos (`api.*` / `ui.*`)
 

@@ -43,12 +43,14 @@ plugins:
             Rede & Ingress: Networking & Ingress
             Secrets & Segurança: Secrets & Security
             Infraestrutura como Código: Infrastructure as Code
+            Dois níveis de IaC: Two tiers of IaC
             Terragrunt (live-infra): Terragrunt (live-infra)
             Módulos reutilizáveis: Reusable modules
             Bootstrap do cluster: Cluster bootstrap
             GitOps & Platform Engineering: GitOps & Platform Engineering
             Padrão GitOps: GitOps pattern
             Catálogo de addons: Addon catalog
+            Burrito (IaC Tier 2): Burrito (IaC Tier 2)
             Chart genérico de apps (generic-app): Generic app chart (generic-app)
             Template de novo app: New app template
             Backstage: Backstage
@@ -81,12 +83,14 @@ nav:
       - Rede & Ingress: architecture/networking.md
       - Secrets & Segurança: architecture/secrets.md
   - Infraestrutura como Código:
+      - Dois níveis de IaC: iac/tiers.md
       - Terragrunt (live-infra): iac/terragrunt.md
       - Módulos reutilizáveis: iac/modules.md
       - Bootstrap do cluster: iac/bootstrap.md
   - GitOps & Platform Engineering:
       - Padrão GitOps: gitops/pattern.md
       - Catálogo de addons: gitops/addons.md
+      - Burrito (IaC Tier 2): gitops/burrito.md
       - Chart genérico de apps (generic-app): kubernetes/generic-app-chart.md
       - Template de novo app: gitops/template.md
       - Backstage: gitops/backstage.md

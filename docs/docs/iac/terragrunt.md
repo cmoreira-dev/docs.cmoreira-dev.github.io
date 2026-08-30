@@ -1,9 +1,9 @@
 # Terragrunt (`iac.homelab-live-infra`)
 
-Estado de infraestrutura viva, gerenciado por Terragrunt. É o único repositório
-que efetivamente aplica infraestrutura de nuvem — os módulos reutilizáveis
-(`iac-proxmox-lxc`, `iac-aws-ecr-pipeline`) não fazem nada sozinhos; precisam ser
-consumidos a partir daqui.
+**Tier 1** da [estratégia de IaC](tiers.md) — infra base, gerida por
+Terragrunt + **OpenTofu**. Os módulos reutilizáveis (`iac-proxmox-lxc`,
+`iac-aws-ecr-pipeline`) não fazem nada sozinhos; precisam ser consumidos a partir
+daqui. Recursos de dependência das aplicações são Tier 2 ([Burrito](../gitops/burrito.md)).
 
 ## Backend remoto
 
@@ -18,8 +18,10 @@ Configurado uma única vez no `root.hcl` da raiz e herdado por todo stack via
 ```
 iac.homelab-live-infra/
 ├── root.hcl                    ← backend remoto compartilhado
+├── bootstrap/                  ← roles OIDC do pipeline (AWS CLI, fora do Terraform)
 ├── _providers/                 ← blocos de provider gerados dinamicamente
 │   ├── aws.hcl
+│   ├── azure.hcl
 │   └── proxmox.hcl
 ├── aws/cmoreira-dev/us-east-1/
 │   ├── ecr/                    ← stack ativo, consome iac-aws-ecr-pipeline
@@ -33,9 +35,9 @@ iac.homelab-live-infra/
     └── homelab/
 ```
 
-Cada provider tem seu `account.hcl` — inclusive o stack `proxmox/`, cuja conta
-Terragrunt (`provider = "aws"`) é a mesma conta AWS usada como backend de state,
-já que Proxmox não tem um "backend" próprio.
+Cada `account.hcl` define `provider = "aws" | "azure" | "proxmox"` (qual
+`_providers/*.hcl` gerar) e os inputs de conta. O backend de state é sempre o
+mesmo bucket S3 — só a *key* muda por camada.
 
 `azure/entra-id/` reserva o lado Azure da federação de login usada para
 acesso humano — Entra ID é hoje o provedor de identidade para a conta AWS,
@@ -59,11 +61,22 @@ workflow, não pessoas) — ver [Build & Registry](../cicd/build-registry.md).
 
 ## Aplicando mudanças
 
-```bash
-cd aws/cmoreira-dev/us-east-1/ecr
-terragrunt plan
-terragrunt apply   # requer confirmação explícita — nunca automatizado
-```
+Camadas `aws/**` e `azure/**` rodam via **GitHub Actions**, cada job um único
+`terragrunt run --all --filter '!./proxmox/**'` sobre a árvore de cloud,
+ordenado por dependência:
 
-Não há CI que rode `terragrunt apply` automaticamente — toda aplicação de
-infraestrutura AWS é manual, revisada antes de rodar.
+- **PR** → `plan`, comentado no PR.
+- **merge em `main`** → `apply` (atrás do environment `iac-apply`).
+- **nightly** → `plan -detailed-exitcode`; drift abre/atualiza uma issue.
+
+Autenticação por OIDC — roles `gha-cmoreira-dev-iac-plan` (ReadOnly + state) e
+`gha-cmoreira-dev-iac-apply` (Admin), geridas por `bootstrap/bootstrap.sh`
+**fora do Terraform** (ver [Bootstrap](bootstrap.md#identidades-do-pipeline-de-iac-out-of-band)).
+
+Camadas `proxmox/**` **não** rodam no CI (runners hospedados não alcançam a LAN)
+— aplicação local:
+
+```bash
+export TF_VAR_proxmox_api_token='user@pve!token=...'
+AWS_PROFILE=terraform terragrunt run --all --working-dir proxmox -- apply
+```

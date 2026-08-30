@@ -1,7 +1,7 @@
 # Módulos reutilizáveis
 
-Dois módulos Terraform puros, sem estado próprio — só existem quando
-consumidos por um `source` (local ou `git::`) a partir de outro repositório.
+Módulos Terraform puros, sem estado próprio — só existem quando consumidos por um
+`source` (local ou `git::`) a partir de outro repositório.
 
 ## `iac-aws-ecr-pipeline`
 
@@ -14,10 +14,13 @@ Recursos criados:
   imagem (`teupadel/api`, `teupadel/ui`, ...) nascem automaticamente no
   primeiro push, sem provisionamento explícito por componente.
 - **Scanning do registro** (nível `BASIC` por padrão).
-- **OIDC identity provider** do GitHub Actions na conta AWS.
-- **IAM Role** assumível via OIDC pelos repositórios listados em
-  `github_repos`, restrita à branch `main` — nenhuma access key estática é
-  criada.
+- **IAM Role** de push assumível via OIDC pelos repositórios listados em
+  `github_repos`, restrita à branch `main` + ao workflow reutilizável
+  `build-push-ecr.yml` — nenhuma access key estática é criada.
+
+O **OIDC provider** do GitHub Actions é hoje um `data` source aqui — quem cria e
+é dono dele é `iac.homelab-live-infra/bootstrap/bootstrap.sh` (um por conta,
+compartilhado com as roles do pipeline de IaC).
 
 Consumido hoje por `iac.homelab-live-infra/aws/cmoreira-dev/us-east-1/ecr`.
 
@@ -33,12 +36,23 @@ iac-proxmox-lxc/
 └── outputs.tf
 ```
 
-Consumido hoje apenas por `Terraform-Proxmox`, que o usa como `module` local
-para provisionar um único LXC: o runner self-hosted do GitHub Actions usado
-pelo bootstrap do cluster (ver [Bootstrap do cluster](bootstrap.md)).
+O bloco `provider "proxmox"` foi removido do módulo — ele é injetado pelo
+Terragrunt (`_providers/proxmox.hcl`). Consumido hoje só por `Terraform-Proxmox`
+(o LXC do runner `rasp-ansible`, hoje parado — ver [Bootstrap](bootstrap.md)).
+
+## `_modules/` do `gitops.core-addons`
+
+Padrão diferente: módulos **repo-local** dentro de `gitops.core-addons/terraform/`
+(sem a cerimônia de `ref` de Git), consumidos pelos subfolders daquele repo:
+
+- **`s3`** — bucket com versioning, SSE, block-public, lifecycle.
+- **`ssm-user`** — IAM user + access key escritos direto no SSM (sem paste
+  manual). Usado por `terraform/burrito/` (users `burrito-datastore` /
+  `burrito-runner`).
 
 ## Versionamento
 
 Módulos consumidos via `git::` referenciam uma `ref` (branch ou tag) no
 `terragrunt.hcl`/`main.tf` do consumidor — uma mudança no módulo só chega ao
-stack quando essa referência é atualizada.
+stack quando essa referência é atualizada. Módulos repo-local (`../_modules/...`)
+não têm essa etapa.
