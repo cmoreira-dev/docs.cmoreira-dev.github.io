@@ -8,7 +8,7 @@ apps).
 
 | Repo | Addon(s) | What it does |
 |---|---|---|
-| `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito** | The cluster's base layer — practically every other `gitops.*` depends on something here (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
+| `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito**, **Renovate** | The cluster's base layer — practically every other `gitops.*` depends on something here (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
 | `gitops.ai-core-addons` | Ollama, LiteLLM | Local LLM serving: Ollama runs inference on the GPU, LiteLLM exposes an OpenAI-compatible proxy in front of it (`llm.cmoreira.dev`) |
 | `gitops.cnpg` | CloudNativePG (Postgres operator) | Operator + first consumer database (Backstage) |
 | `gitops.monitoring` | Grafana Alloy, metrics-server | Observability (telemetry collection) and metrics for HPA |
@@ -41,6 +41,8 @@ Addons installed:
   `gitops.*` repos when a new image lands in ECR
 - **[Burrito](burrito.md)** — Tier-2 IaC: reconciles the OpenTofu/Terragrunt in
   GitOps repos' `terraform/` folders
+- **[Renovate](renovate.md)** — CronJob that opens dependency-bump PRs across the
+  whole org (`onboarding: true`)
 
 ## `gitops.ai-core-addons` in detail
 

@@ -25,7 +25,7 @@ The cluster exposes two `Gateway` resources (Gateway API, defined in
 | Gateway | Domain | Used for |
 |---|---|---|
 | `nginx-gateway-cmoreira-dev` | `*.cmoreira.dev` | internal tools and Sara (`local.cmoreira.dev`, `argocd.cmoreira.dev`, `headlamp.cmoreira.dev`, `llm.cmoreira.dev`) |
-| `nginx-gateway-teupadel-com` | `*.teupadel.com` | the public teupadel.com product (`www.teupadel.com`, `api.teupadel.com`) |
+| `nginx-gateway-teupadel-com` | `*.teupadel.com` | the public teupadel.com product (`www.teupadel.com` — the API is internal, see below) |
 
 Each app declares its own `HTTPRoute` (via the
 [generic app chart](../kubernetes/generic-app-chart.md)) pointing at one of
@@ -53,19 +53,23 @@ ingress:
   - hostname: argocd.cmoreira.dev     → nginx-gateway-cmoreira-dev
   - hostname: headlamp.cmoreira.dev   → nginx-gateway-cmoreira-dev
   - hostname: llm.cmoreira.dev        → nginx-gateway-cmoreira-dev
-  - hostname: api.teupadel.com        → nginx-gateway-teupadel-com
   - hostname: www.teupadel.com        → nginx-gateway-teupadel-com
   - service: http_status:404          # fallback
 ```
+
+`api.teupadel.com` is **not here** — `ui.ia.teupadel.com` talks to the API over
+the in-cluster Service (`teupadel-api.teupadel.svc.cluster.local`), so the API is
+never exposed to the tunnel. See [teupadel.com](../apps/teupadel.md#networking).
 
 ## Two routing patterns per app
 
 Within the same Gateway, an app can be exposed in two ways, and both coexist
 in the cluster today:
 
-**Dedicated hostname** (teupadel.com) — each component has its own subdomain
-(`www.teupadel.com`, `api.teupadel.com`), no path rewriting. This is the
-pattern for products with their own domain.
+**Dedicated hostname** (teupadel.com) — the frontend has its own subdomain
+(`www.teupadel.com`), no path rewriting. This is the pattern for products with
+their own domain. (The teupadel API has no public `HTTPRoute` — it is consumed
+only through the in-cluster Service.)
 
 **Shared path** (Sara, under `local.cmoreira.dev`) — UI and API share the
 same hostname, distinguished by path prefix (`/sara` for the UI,

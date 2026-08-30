@@ -85,4 +85,4 @@ sequenceDiagram
 Todo repo `gitops.*` com pasta `helm/` tem `renovate.json` (manager `helmv3`,
 escopo `helm/**`) — o Renovate abre PRs automaticamente quando uma dependência
 de chart tem nova versão. Mesclar o PR é o que efetivamente promove a
-atualização, já que o próprio merge em `main` é o gatilho de deploy.
+atualização, já que o próprio merge em `main` é o gatilho de deploy. Ver [Renovate](renovate.md) para o setup self-hosted.
