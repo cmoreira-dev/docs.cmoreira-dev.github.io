@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "extends": ["config:recommended"],
+
+  "enabledManagers": ["pip_requirements", "github-actions"],
+
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Renovate Dashboard",
+
+  "packageRules": [
+    {
+      "description": "MkDocs stack — group, and never auto-merge majors (MkDocs 2.0 breaks Material + plugins)",
+      "matchManagers": ["pip_requirements"],
+      "groupName": "mkdocs stack"
+    },
+    {
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
