@@ -35,8 +35,8 @@ Burrito plans continuously (every 10m) and, when a layer has
 `remediationStrategy.autoApply: true`, re-applies on its own. On PRs it comments
 the plan.
 
-It replaced Crossplane — same paradigm as Tier 1 (Terraform/state/modules), just
-reconciled in-cluster.
+Same paradigm as Tier 1 (Terraform/state/modules), just reconciled in-cluster
+rather than in a pipeline.
 
 ### Boundary
 

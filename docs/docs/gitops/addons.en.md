@@ -40,7 +40,7 @@ Addons installed:
 - **argocd-image-updater** — automatically updates the image tag in
   `gitops.*` repos when a new image lands in ECR
 - **[Burrito](burrito.md)** — Tier-2 IaC: reconciles the OpenTofu/Terragrunt in
-  GitOps repos' `terraform/` folders (it replaced Crossplane)
+  GitOps repos' `terraform/` folders
 
 ## `gitops.ai-core-addons` in detail
 

@@ -2,8 +2,7 @@
 
 [Burrito](https://docs.burrito.tf) — "ArgoCD para Terraform". Operador Kubernetes
 que faz `plan`/`apply` de OpenTofu/Terragrunt a partir de `TerraformRepository` e
-`TerraformLayer` CRDs. É o **Tier 2** da [estratégia de IaC](../iac/tiers.md) —
-substituiu o Crossplane.
+`TerraformLayer` CRDs. É o **Tier 2** da [estratégia de IaC](../iac/tiers.md).
 
 Instalado em `gitops.core-addons` (não é repo separado):
 

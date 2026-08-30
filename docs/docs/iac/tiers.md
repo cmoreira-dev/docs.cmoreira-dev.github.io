@@ -35,8 +35,8 @@ Cobre o que uma aplicação precisa: um banco gerenciado, um bucket, DNS por app
 secrets. O Burrito faz `plan` contínuo (a cada 10min) e, quando o layer tem
 `remediationStrategy.autoApply: true`, re-aplica sozinho. Em PRs comenta o plan.
 
-Substituiu o Crossplane — mesma paradigma do Tier 1 (Terraform/state/módulos),
-só que reconciliado no cluster.
+Mesma paradigma do Tier 1 (Terraform/state/módulos), só que reconciliada no
+cluster em vez de num pipeline.
 
 ### Fronteira
 
