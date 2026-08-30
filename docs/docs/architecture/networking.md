@@ -25,7 +25,7 @@ O cluster expõe dois `Gateway` (recurso da Gateway API, definidos em
 | Gateway | Domínio | Uso |
 |---|---|---|
 | `nginx-gateway-cmoreira-dev` | `*.cmoreira.dev` | ferramentas internas e Sara (`local.cmoreira.dev`, `argocd.cmoreira.dev`, `headlamp.cmoreira.dev`, `llm.cmoreira.dev`) |
-| `nginx-gateway-teupadel-com` | `*.teupadel.com` | produto público teupadel.com (`www.teupadel.com`, `api.teupadel.com`) |
+| `nginx-gateway-teupadel-com` | `*.teupadel.com` | produto público teupadel.com (`www.teupadel.com` — a API é interna, ver abaixo) |
 
 Cada app declara seu próprio `HTTPRoute` (via o
 [chart genérico de apps](../kubernetes/generic-app-chart.md)) apontando para uma
@@ -53,19 +53,23 @@ ingress:
   - hostname: argocd.cmoreira.dev     → nginx-gateway-cmoreira-dev
   - hostname: headlamp.cmoreira.dev   → nginx-gateway-cmoreira-dev
   - hostname: llm.cmoreira.dev        → nginx-gateway-cmoreira-dev
-  - hostname: api.teupadel.com        → nginx-gateway-teupadel-com
   - hostname: www.teupadel.com        → nginx-gateway-teupadel-com
   - service: http_status:404          # fallback
 ```
+
+`api.teupadel.com` **não está aqui** — a `ui.ia.teupadel.com` fala com a API
+pelo Service interno (`teupadel-api.teupadel.svc.cluster.local`), então a API
+nunca é exposta ao túnel. Ver [teupadel.com](../apps/teupadel.md#rede).
 
 ## Dois padrões de roteamento por app
 
 Dentro de uma mesma Gateway, uma app pode ser exposta de duas formas, e ambas
 convivem hoje no cluster:
 
-**Hostname dedicado** (teupadel.com) — cada componente tem seu próprio
-subdomínio (`www.teupadel.com`, `api.teupadel.com`), sem reescrita de path. É o
-padrão para produtos com domínio próprio.
+**Hostname dedicado** (teupadel.com) — o frontend tem seu próprio subdomínio
+(`www.teupadel.com`), sem reescrita de path. É o padrão para produtos com
+domínio próprio. (A API do teupadel não usa `HTTPRoute` público — é consumida
+só pelo Service interno.)
 
 **Path compartilhado** (Sara, sob `local.cmoreira.dev`) — UI e API dividem o
 mesmo hostname, diferenciadas por prefixo de path (`/sara` para a UI,

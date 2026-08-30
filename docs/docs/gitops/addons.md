@@ -7,7 +7,7 @@ passar pelo chart genérico (esse é reservado para apps próprias).
 
 | Repo | Addon(s) | O que faz |
 |---|---|---|
-| `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito** | Base do cluster — praticamente todo outro `gitops.*` depende de algo daqui (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
+| `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito**, **Renovate** | Base do cluster — praticamente todo outro `gitops.*` depende de algo daqui (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
 | `gitops.ai-core-addons` | Ollama, LiteLLM | Serving de LLM local: Ollama roda inferência na GPU, LiteLLM expõe um proxy compatível com a API da OpenAI na frente dele (`llm.cmoreira.dev`) |
 | `gitops.cnpg` | CloudNativePG (operador Postgres) | Operador + primeiro banco consumidor (Backstage) |
 | `gitops.monitoring` | Grafana Alloy, metrics-server | Observabilidade (coleta/telemetria) e métricas para HPA |
@@ -41,6 +41,8 @@ Addons instalados:
   repos `gitops.*` quando uma nova imagem chega ao ECR
 - **[Burrito](burrito.md)** — Tier 2 de IaC: reconcilia OpenTofu/Terragrunt das
   pastas `terraform/` dos repos GitOps
+- **[Renovate](renovate.md)** — CronJob que abre PRs de bump de dependência em
+  toda a org (`onboarding: true`)
 
 ## `gitops.ai-core-addons` em detalhe
 

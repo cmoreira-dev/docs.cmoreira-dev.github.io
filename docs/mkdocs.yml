@@ -51,6 +51,7 @@ plugins:
             Padrão GitOps: GitOps pattern
             Catálogo de addons: Addon catalog
             Burrito (IaC Tier 2): Burrito (IaC Tier 2)
+            Renovate: Renovate
             Chart genérico de apps (generic-app): Generic app chart (generic-app)
             Template de novo app: New app template
             Backstage: Backstage
@@ -91,6 +92,7 @@ nav:
       - Padrão GitOps: gitops/pattern.md
       - Catálogo de addons: gitops/addons.md
       - Burrito (IaC Tier 2): gitops/burrito.md
+      - Renovate: gitops/renovate.md
       - Chart genérico de apps (generic-app): kubernetes/generic-app-chart.md
       - Template de novo app: gitops/template.md
       - Backstage: gitops/backstage.md

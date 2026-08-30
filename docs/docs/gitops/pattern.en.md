@@ -87,4 +87,4 @@ sequenceDiagram
 Every `gitops.*` repo with a `helm/` folder has a `renovate.json`
 (`helmv3` manager, scoped to `helm/**`) — Renovate automatically opens PRs
 when a chart dependency has a new version. Merging the PR is what actually
-promotes the update, since the merge to `main` is itself the deploy trigger.
+promotes the update, since the merge to `main` is itself the deploy trigger. See [Renovate](renovate.md) for the self-hosted setup.

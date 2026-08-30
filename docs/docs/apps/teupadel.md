@@ -56,12 +56,17 @@ textual dentro delas.
 ## Rede
 
 Domínio próprio (`teupadel.com`), servido pela Gateway dedicada
-`nginx-gateway-teupadel-com`:
+`nginx-gateway-teupadel-com`. Só o frontend é exposto:
 
 | Hostname | Componente |
 |---|---|
 | `www.teupadel.com` | `ui.ia.teupadel.com` |
-| `api.teupadel.com` | `api.ia.teupadel.com` |
+
+`api.ia.teupadel.com` **não tem hostname público**. O browser só chama
+`/analyse` no próprio servidor Next.js, e o Route Handler
+(`src/app/analyse/route.js`) faz proxy server-side para o Service interno
+`http://teupadel-api.teupadel.svc.cluster.local` — tráfego pod→pod, nunca sai do
+cluster. Não há entrada `api.teupadel.com` no cloudflared.
 
 Ver [Rede & Ingress](../architecture/networking.md) para o padrão de hostname
 dedicado (sem reescrita de path).
