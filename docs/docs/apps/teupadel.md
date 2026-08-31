@@ -11,8 +11,8 @@ sugestões por movimento.
 |---|---|---|
 | `ui.ia.teupadel.com` | Frontend público, institucional + ferramenta | Next.js 15 (App Router, SSR), `next-intl` (en/pt-pt/pt-br) |
 | `api.ia.teupadel.com` | Orquestração: recebe vídeo, chama o processador de pose, chama o LLM, monta o relatório | FastAPI |
-| `api.ia.pose-estimation` | Extração de pose por frame | ONNX Runtime + modelo YOLOv8n-pose |
-| `gitops.teupadel.com` | Deploy dos dois componentes web (api + ui) | Helm (chart genérico) + ArgoCD |
+| `api.ia.pose-estimation` | Extração de pose por frame | ONNX Runtime **GPU** (YOLOv8n-pose) — K8s no nó `proxmox-k8s-gpu-worker-1` (RTX 3060, time-slicing). Migrado do LXC `192.168.1.20` em 2026-08. |
+| `gitops.teupadel.com` | Deploy dos três componentes (api + ui + processor) | Helm (`generic-app`) + ArgoCD |
 
 ## Fluxo de dados
 
@@ -106,15 +106,13 @@ Config via env vars `OTEL_*` em `gitops.teupadel.com/helm/api/values.yaml`.
 Toda a instrumentação é no-op se `OTEL_EXPORTER_OTLP_ENDPOINT` for removido.
 
 !!! note "Pendências"
-    - `api.ia.pose-estimation` está instrumentado mas **inerte** enquanto correr
-      no LXC (192.168.1.20) sem rota para o Alloy in-cluster — falta NodePort/LB
-      ou um collector local. O `traceparent` já é propagado, liga-se quando ativado.
     - Falta banner de consentimento de cookies / menção na política de privacidade
       (pageviews + cookie persistente + país, utilizadores na UE).
 
 ## Namespace e registry
 
-Ambos os componentes web rodam no namespace `teupadel`, com imagens publicadas
-no ECR (`<conta>.dkr.ecr.us-east-1.amazonaws.com/teupadel/api` e
-`.../teupadel/ui`) pelo pipeline descrito em
-[Build & Registry](../cicd/build-registry.md).
+Os três componentes rodam no namespace `teupadel`, com imagens publicadas no
+ECR (`.../teupadel/api`, `.../teupadel/ui`, `.../teupadel/processor`) pelo
+pipeline descrito em [Build & Registry](../cicd/build-registry.md). O
+`teupadel-processor` é ClusterIP (`:8000`), sem HTTPRoute — só a `teupadel-api`
+lhe fala.
