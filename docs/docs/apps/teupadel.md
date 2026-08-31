@@ -77,6 +77,41 @@ dedicado (sem reescrita de path).
 partir do SSM Parameter Store — ver
 [Secrets & Segurança](../architecture/secrets.md).
 
+## Telemetria & Observabilidade
+
+Dois canais, ambos dentro do stack Grafana existente (Alloy → Grafana Cloud) —
+sem backend novo, sem Postgres.
+
+| Sinal | Caminho | Destino |
+|---|---|---|
+| Traces (UI → api → processor → Anthropic) | OTLP/HTTP → `alloy-worker.alloy.svc:4318` | Tempo |
+| Métricas (latência de endpoints, histograma `http.server.duration`) | OTLP/HTTP → Alloy | Mimir |
+| Eventos de negócio (`pageview`, `upload_started`, `analysis_completed`, ...) | log JSON no stdout do pod (`log_type=business_event`) → scrape do Alloy | Loki |
+
+**Correlação sessão ↔ erro.** O frontend gera `session_id` (cookie, janela
+deslizante de 30 min) e `visitor_id` (cookie, 1 ano), e propaga-os no header
+W3C `baggage` em cada chamada à API. A `api.ia.teupadel.com` copia
+`session.id` / `visitor.id` para atributos de **todos** os spans — em Grafana
+filtra-se `session.id="..."` em Tempo para ver todas as traces daquela visita.
+Cada request continua a ser a sua própria trace (sem "trace-as-sessão").
+
+Os eventos do browser não vão diretamente à API (que não é pública): o
+`navigator.sendBeacon` aponta para `/telemetry` na própria UI e o Route Handler
+`src/app/telemetry/route.js` faz proxy para `POST /telemetry/events` na API,
+que valida (enum fechado de `event_type`, rate-limit por IP, cap de payload),
+enriquece com país/origem a partir dos headers do Cloudflare Tunnel (sem
+guardar o IP em bruto) e emite a linha JSON.
+
+Config via env vars `OTEL_*` em `gitops.teupadel.com/helm/api/values.yaml`.
+Toda a instrumentação é no-op se `OTEL_EXPORTER_OTLP_ENDPOINT` for removido.
+
+!!! note "Pendências"
+    - `api.ia.pose-estimation` está instrumentado mas **inerte** enquanto correr
+      no LXC (192.168.1.20) sem rota para o Alloy in-cluster — falta NodePort/LB
+      ou um collector local. O `traceparent` já é propagado, liga-se quando ativado.
+    - Falta banner de consentimento de cookies / menção na política de privacidade
+      (pageviews + cookie persistente + país, utilizadores na UE).
+
 ## Namespace e registry
 
 Ambos os componentes web rodam no namespace `teupadel`, com imagens publicadas

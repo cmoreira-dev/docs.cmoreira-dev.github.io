@@ -77,6 +77,42 @@ hostname pattern (no path rewriting).
 from SSM Parameter Store — see
 [Secrets & Security](../architecture/secrets.md).
 
+## Telemetry & Observability
+
+Two channels, both inside the existing Grafana stack (Alloy → Grafana Cloud) —
+no new backend, no Postgres.
+
+| Signal | Path | Destination |
+|---|---|---|
+| Traces (UI → api → processor → Anthropic) | OTLP/HTTP → `alloy-worker.alloy.svc:4318` | Tempo |
+| Metrics (endpoint latency, `http.server.duration` histogram) | OTLP/HTTP → Alloy | Mimir |
+| Business events (`pageview`, `upload_started`, `analysis_completed`, ...) | JSON line on pod stdout (`log_type=business_event`) → Alloy scrape | Loki |
+
+**Session ↔ error correlation.** The frontend generates a `session_id` (cookie,
+30-min sliding window) and a `visitor_id` (cookie, 1 year), and propagates them
+in the W3C `baggage` header on every API call. `api.ia.teupadel.com` copies
+`session.id` / `visitor.id` onto **every** span's attributes — in Grafana you
+filter `session.id="..."` in Tempo to see every trace from that visit. Each
+request is still its own trace (no "trace-as-session").
+
+Browser events don't hit the API directly (it isn't public): `navigator.sendBeacon`
+targets `/telemetry` on the UI itself, and the Route Handler
+`src/app/telemetry/route.js` proxies to `POST /telemetry/events` on the API,
+which validates (closed `event_type` enum, per-IP rate limit, payload cap),
+enriches with country/origin from the Cloudflare Tunnel headers (without storing
+the raw IP), and emits the JSON line.
+
+Configured via `OTEL_*` env vars in `gitops.teupadel.com/helm/api/values.yaml`.
+All instrumentation is a no-op if `OTEL_EXPORTER_OTLP_ENDPOINT` is removed.
+
+!!! note "Open items"
+    - `api.ia.pose-estimation` is instrumented but **dormant** while it runs on
+      the LXC (192.168.1.20) with no route to the in-cluster Alloy — needs a
+      NodePort/LB or a local collector. The `traceparent` is already propagated,
+      so it links up once enabled.
+    - A cookie-consent banner / privacy-policy note is still missing (pageviews +
+      persistent cookie + country, EU users).
+
 ## Namespace and registry
 
 Both web components run in the `teupadel` namespace, with images published
