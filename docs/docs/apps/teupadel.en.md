@@ -11,8 +11,8 @@ suggestions per movement.
 |---|---|---|
 | `ui.ia.teupadel.com` | Public frontend, marketing pages + the tool itself | Next.js 15 (App Router, SSR), `next-intl` (en/pt-pt/pt-br) |
 | `api.ia.teupadel.com` | Orchestration: receives the video, calls the pose processor, calls the LLM, assembles the report | FastAPI |
-| `api.ia.pose-estimation` | Per-frame pose extraction | ONNX Runtime + YOLOv8n-pose model |
-| `gitops.teupadel.com` | Deploys the two web components (api + ui) | Helm (generic chart) + ArgoCD |
+| `api.ia.pose-estimation` | Per-frame pose extraction | ONNX Runtime **GPU** (YOLOv8n-pose) — K8s on `proxmox-k8s-gpu-worker-1` (RTX 3060, time-slicing). Migrated off the LXC `192.168.1.20` in 2026-08. |
+| `gitops.teupadel.com` | Deploys the three components (api + ui + processor) | Helm (`generic-app`) + ArgoCD |
 
 ## Data flow
 
@@ -106,16 +106,13 @@ Configured via `OTEL_*` env vars in `gitops.teupadel.com/helm/api/values.yaml`.
 All instrumentation is a no-op if `OTEL_EXPORTER_OTLP_ENDPOINT` is removed.
 
 !!! note "Open items"
-    - `api.ia.pose-estimation` is instrumented but **dormant** while it runs on
-      the LXC (192.168.1.20) with no route to the in-cluster Alloy — needs a
-      NodePort/LB or a local collector. The `traceparent` is already propagated,
-      so it links up once enabled.
     - A cookie-consent banner / privacy-policy note is still missing (pageviews +
       persistent cookie + country, EU users).
 
 ## Namespace and registry
 
-Both web components run in the `teupadel` namespace, with images published
-to ECR (`<account>.dkr.ecr.us-east-1.amazonaws.com/teupadel/api` and
-`.../teupadel/ui`) by the pipeline described in
-[Build & Registry](../cicd/build-registry.md).
+All three components run in the `teupadel` namespace, with images published to
+ECR (`.../teupadel/api`, `.../teupadel/ui`, `.../teupadel/processor`) by the
+pipeline described in [Build & Registry](../cicd/build-registry.md). The
+`teupadel-processor` is ClusterIP (`:8000`), no HTTPRoute — only `teupadel-api`
+talks to it.
