@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: docs
+  description: 'cmoreira-dev documentation site (MkDocs, PT-BR + EN) — architecture, runbooks, project docs'
+  annotations:
+    github.com/project-slug: cmoreira-dev/docs.cmoreira-dev.github.io
+    backstage.io/techdocs-ref: dir:./docs
+  links:
+    - url: https://docs.cmoreira.dev
+      title: Documentation site
+      icon: docs
+spec:
+  type: documentation
+  owner: platform-team
+  system: homelab-platform
+  lifecycle: production
