@@ -45,6 +45,14 @@ pulsos, quadris, joelhos, tornozelos, olhos, orelhas), cada um com posição
 normalizada (x, y) e confiança (`visibility`). Só frames com pose detectada são
 enviados ao LLM, para manter o payload pequeno.
 
+Cada frame com pose detectada também traz um campo `features` — ângulos de
+cotovelo e joelho, separação de rotação ombro-quadril, altura do pulso
+relativa ao ombro, e velocidade/aceleração da anca (calculadas entre frames
+detectados consecutivos, via `timestamp_s`, não por índice de frame). É a base
+determinística para a comparação DTW contra a biblioteca de referência — ver
+`api.ia.pose-estimation/features.py`. O campo `landmarks` continua a existir
+inalterado, sem quebrar consumidores atuais.
+
 ## Internacionalização
 
 A UI serve três locales com prefixo de URL (`/en`, `/pt-pt`, `/pt-br`), cada um

@@ -45,6 +45,14 @@ wrists, hips, knees, ankles, eyes, ears), each with normalized position
 (x, y) and confidence (`visibility`). Only frames with a detected pose are
 sent to the LLM, to keep the payload small.
 
+Each frame with a detected pose also carries a `features` field — elbow and
+knee angles, shoulder-hip rotation separation, wrist height relative to the
+shoulder, and hip velocity/acceleration (computed between consecutive
+detected frames via `timestamp_s`, not frame index). This is the
+deterministic basis for DTW comparison against the reference library — see
+`api.ia.pose-estimation/features.py`. The `landmarks` field is unchanged, so
+existing consumers keep working.
+
 ## Internationalization
 
 The UI serves three locales with a URL prefix (`/en`, `/pt-pt`, `/pt-br`),
