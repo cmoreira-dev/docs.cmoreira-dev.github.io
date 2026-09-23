@@ -53,6 +53,13 @@ determinística para a comparação DTW contra a biblioteca de referência — v
 `api.ia.pose-estimation/features.py`. O campo `landmarks` continua a existir
 inalterado, sem quebrar consumidores atuais.
 
+!!! note "Em progresso: comparação DTW contra biblioteca de referência"
+    `api.ia.pose-estimation/reference_library.py` define o schema (features por
+    golpe × fase) e a biblioteca em `reference_library/data.json` já existe,
+    mas **ainda está vazia** — falta popular com vídeos de referência reais.
+    Segmentação automática de fase/golpe e a comparação DTW em si também
+    ainda não foram implementadas.
+
 ## Internacionalização
 
 A UI serve três locales com prefixo de URL (`/en`, `/pt-pt`, `/pt-br`), cada um

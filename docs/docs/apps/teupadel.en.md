@@ -53,6 +53,13 @@ deterministic basis for DTW comparison against the reference library — see
 `api.ia.pose-estimation/features.py`. The `landmarks` field is unchanged, so
 existing consumers keep working.
 
+!!! note "In progress: DTW comparison against a reference library"
+    `api.ia.pose-estimation/reference_library.py` defines the schema (features
+    per movement × phase) and the library at `reference_library/data.json`
+    already exists, but it's **still empty** — it needs to be populated with
+    real reference videos. Automatic phase/movement segmentation and the DTW
+    comparison itself haven't been implemented yet either.
+
 ## Internationalization
 
 The UI serves three locales with a URL prefix (`/en`, `/pt-pt`, `/pt-br`),
