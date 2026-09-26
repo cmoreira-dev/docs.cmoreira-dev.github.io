@@ -30,13 +30,25 @@ sequenceDiagram
     Pose-->>API: per-frame landmarks (17 points) + annotated GIF
     API->>LLM: frames with detected pose + prompt (user's language)
     LLM-->>API: structured report
-    API-->>UI: JSON (metadata + report + gif)
+    API-->>UI: JSON (metadata + report)
     UI-->>U: rendered report
 ```
 
 The UI never talks directly to the pose processor or to the Anthropic API —
 everything goes through `api.ia.teupadel.com`, the only component with
 access to the Anthropic API key.
+
+Each report point (`pontos_positivos`/`pontos_a_melhorar`) carries a
+`golpe_index` (1-based, the stroke's order in the video) and a `tempo_s` — the
+UI uses this for a "watch in video" link that seeks the user's own uploaded
+video (kept locally in the browser, never sent back by the API). The
+angle/degree numbers in `deviations` are still sent to Claude as internal
+reasoning input, but never surface as text in the response. When
+`stroke_analysis` comes back empty, or pose was detected in too few frames
+(`frames_with_pose / total_frames` under 30%), the API returns
+`analysis_possible: false` + `reason` (`no_stroke_detected` or
+`low_pose_detection`) without calling the Anthropic API at all — the UI shows
+fixed tips instead of an empty report.
 
 ## Landmarks extracted
 
