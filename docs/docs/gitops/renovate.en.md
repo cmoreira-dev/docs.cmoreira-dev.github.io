@@ -35,7 +35,8 @@ in memory during extraction, which OOMKilled the shared instance's 2Gi limit
 job every night. Rather than raising the shared instance's memory (which
 would keep growing as Backstage's dependency tree grows, and affects every
 other repo's job too), `backstage.homelab` is excluded from the shared
-instance's `autodiscover` (`ignoreRepositories`) and scanned instead by a
+instance's `autodiscoverFilter` with a negated entry
+(`"!cmoreira-dev/backstage.homelab"`) and scanned instead by a
 second, dedicated instance with `autodiscover: false` +
 `"repositories": ["cmoreira-dev/backstage.homelab"]` and a much higher memory
 ceiling. The two crons are staggered by an hour so they never compete for

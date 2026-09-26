@@ -35,9 +35,9 @@ lookups de registry/changelog de cada dependência durante a extração, o que
 estourava o limite de 2Gi da instância geral todas as noites (`OOMKilled`).
 Em vez de subir a memória da instância geral (que só cresceria conforme a
 árvore de dependências do Backstage cresce, e afeta o job de todos os outros
-repos), o `backstage.homelab` é excluído do `autodiscover` da instância geral
-(`ignoreRepositories`) e passa a ser escaneado por uma segunda instância
-dedicada, com `autodiscover: false` +
+repos), o `backstage.homelab` é excluído do `autodiscoverFilter` da instância
+geral com uma entrada negada (`"!cmoreira-dev/backstage.homelab"`) e passa a
+ser escaneado por uma segunda instância dedicada, com `autodiscover: false` +
 `"repositories": ["cmoreira-dev/backstage.homelab"]` e um teto de memória bem
 mais alto. Os dois crons ficam desfasados em uma hora para nunca competirem
 por recursos no mesmo worker ARM64 ao mesmo tempo.
