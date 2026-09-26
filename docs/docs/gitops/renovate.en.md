@@ -5,7 +5,9 @@ in the cluster (in `gitops.core-addons`, `helm/renovate`), opening dependency
 bump PRs across the whole `cmoreira-dev` org.
 
 - **When**: 03:00 daily (`Europe/Lisbon`).
-- **Scope**: `autodiscover` filtered to `cmoreira-dev/*`.
+- **Scope**: `autodiscover` filtered to `cmoreira-dev/*`, excluding
+  `backstage.homelab` (see [two instances](#two-instances-shared-vs-backstage-homelab)
+  below).
 - **Onboarding**: `true` — a new repo automatically gets a *"Configure
   Renovate"* PR with a starter `renovate.json` (`extends:
   ["config:recommended"]`). Until that PR is merged, Renovate does nothing in
@@ -13,6 +15,37 @@ bump PRs across the whole `cmoreira-dev` org.
 - Each repo tunes the rest in its own `renovate.json` (see the
   [GitOps pattern](pattern.md) for the `gitops.*` repos: `helmv3` manager,
   `helm/**` scope, per-chart groups).
+
+## Two instances: shared vs. backstage.homelab
+
+The chart (`helm/renovate`) is deployed **twice**, as two separate Argo CD
+Applications sharing the same chart code but with different values files and
+namespaces:
+
+| Instance | Application / namespace | Values | Schedule | Memory limit |
+|---|---|---|---|---|
+| Shared | `renovate` / `renovate` | `values.yaml` | 03:00 | 2Gi |
+| Backstage-dedicated | `renovate-backstage` / `renovate-backstage` | `values.yaml` + `values-backstage.yaml` | 04:00 | 4Gi |
+
+**Why the split**: `backstage.homelab` is the only `npm`-managed repo in the
+org (a yarn-workspaces monorepo, `packages/*` + `plugins/*`) — every other
+repo Renovate scans is a `gitops.*` chart with a single Helm dependency.
+Renovate's `npm` manager keeps registry/changelog lookups for every dependency
+in memory during extraction, which OOMKilled the shared instance's 2Gi limit
+job every night. Rather than raising the shared instance's memory (which
+would keep growing as Backstage's dependency tree grows, and affects every
+other repo's job too), `backstage.homelab` is excluded from the shared
+instance's `autodiscover` (`ignoreRepositories`) and scanned instead by a
+second, dedicated instance with `autodiscover: false` +
+`"repositories": ["cmoreira-dev/backstage.homelab"]` and a much higher memory
+ceiling. The two crons are staggered by an hour so they never compete for
+resources on the same ARM64 worker at once.
+
+Both instances share the same GitHub App installation token flow
+(`renovate-github-app` secret, `gh-app-token.mjs`) — each namespace gets its
+own copy of the `ExternalSecret`/`ConfigMap` (namespaced via
+`{{ include "renovate.namespace" . }}` in the chart templates, not hardcoded),
+so no cross-namespace resource collision.
 
 ## Authentication — GitHub App, no PAT
 
@@ -55,9 +88,13 @@ with `gh-app-token: no installation of app <id> on org cmoreira-dev`.
 ## Operating it
 
 ```bash
-# force a run now
+# force a run now (shared instance)
 kubectl -n renovate create job --from=cronjob/renovate renovate-manual-$(date +%s)
 kubectl -n renovate logs -f job/renovate-manual-...
+
+# force a run now (backstage.homelab-dedicated instance)
+kubectl -n renovate-backstage create job --from=cronjob/renovate-backstage renovate-backstage-manual-$(date +%s)
+kubectl -n renovate-backstage logs -f job/renovate-backstage-manual-...
 ```
 
 The Dependency Dashboard (an issue in each repo) shows what's pending and what
