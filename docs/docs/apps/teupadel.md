@@ -25,12 +25,19 @@ sequenceDiagram
     participant LLM as Claude (Anthropic API)
 
     U->>UI: upload de vídeo
-    UI->>API: POST /analyse (proxy server-side)
-    API->>Pose: POST /analyse (vídeo + fps)
-    Pose-->>API: landmarks por frame (17 pontos) + GIF anotado
-    API->>LLM: frames com pose detectada + prompt (idioma do usuário)
-    LLM-->>API: relatório estruturado
-    API-->>UI: JSON (metadata + report)
+    UI->>API: POST /analyse (proxy server-side, cookie de sessão)
+    API->>API: valida sessão e debita 1 bola (reserva)
+    API-->>UI: 202 + report_id
+    par em segundo plano (asyncio task)
+        API->>Pose: POST /analyse (vídeo + fps)
+        Pose-->>API: landmarks por frame (17 pontos)
+        API->>LLM: frames com pose detectada + prompt (idioma do usuário)
+        LLM-->>API: relatório estruturado
+        API->>API: grava em reports (done) ou estorna a bola
+    and
+        UI->>API: GET /reports/{id} (polling, 3 s)
+    end
+    API-->>UI: relatório (JSON)
     UI-->>U: relatório renderizado
 ```
 
@@ -49,6 +56,82 @@ raciocínio interno, mas nunca aparecem em texto na resposta. Quando
 `analysis_possible: false` + `reason` (`no_stroke_detected` ou
 `low_pose_detection`) sem chamar a Anthropic API — a UI mostra dicas fixas em
 vez de um relatório vazio.
+
+## Contas, bolas e indicação
+
+O login é unificado (magic link + Google): o mesmo pedido cria a conta se ela
+ainda não existir. O Google devolve o e-mail já verificado, então não envia
+e-mail nenhum — só o magic link passa pelo SES.
+
+Cada análise custa **1 bola**. O saldo é `users.bolas` (cache) e a fonte de
+verdade é o ledger `bola_ledger`: cada movimento é um lançamento
+`(user, reason, ref)` **único**, o que torna créditos e estornos idempotentes.
+
+| Movimento | Quando | Valor |
+|---|---|---|
+| `welcome` | primeira confirmação de e-mail (magic link ou Google) | +3 |
+| `referral_received` / `referral_given` | a conta indicada confirma o e-mail | +1 para cada lado |
+| `analysis` | início de uma análise | −1 |
+| `analysis_refund` | análise sem relatório | +1 |
+
+**Indicação:** o link é `/login?ref=<código>` (o `referral_code` vem em `/me`).
+O código acompanha o pedido do magic link (`email_tokens.referral_code`) ou o
+`state` do OAuth do Google e é aplicado quando a conta nova confirma o e-mail.
+Não há autoindicação e cada conta só pode ser indicada uma vez.
+
+O upload e a página da ferramenta continuam abertos a visitantes anônimos. Ao
+clicar em **Analisar**, quem não tem sessão vai para o login (`401
+login_required`) e quem não tem saldo vai para `/pricing` (`402`).
+
+## Análise assíncrona e histórico de relatórios
+
+`POST /analyse` não bloqueia até o relatório ficar pronto. A API reserva a bola,
+cria uma linha em `reports` e responde `202` com o `report_id`; o pipeline
+(processador de pose → filtro de qualidade → LLM) corre em segundo plano no pod.
+A UI acompanha por polling em `GET /reports/{id}`. Se o usuário fechar a página,
+o relatório continua a ser gerado e aparece em **Conta → Os meus relatórios**
+(`/reports/[id]`). O **vídeo nunca é guardado** — só o JSON do relatório — por
+isso a página de um relatório guardado não tem player nem links "Ver no vídeo".
+
+O fluxo é uma **saga leve com compensação**, orquestrada dentro da própria API
+(sem broker): reservar a bola → processar → confirmar (fica debitada) ou compensar
+(estorno).
+
+```mermaid
+stateDiagram-v2
+    [*] --> processing: debita 1 bola (analysis)
+    processing --> done: relatório gerado (bola consumida)
+    processing --> no_analysis: sem golpes / qualidade insuficiente (estorno)
+    processing --> failed: erro do processador ou do LLM (estorno)
+    processing --> failed: job perdido > 10 min (estorno)
+    done --> [*]
+    no_analysis --> [*]
+    failed --> [*]
+```
+
+- O fecho do relatório (`UPDATE … WHERE status = 'processing'`) e o estorno
+  correm na mesma transação; o estorno usa a chave `(user, analysis_refund, report_id)`,
+  então job e varrimento nunca estornam duas vezes.
+- **Jobs perdidos** (pod reiniciado a meio): qualquer `GET /reports*` fecha como
+  `failed`/`timeout` os relatórios em `processing` há mais de 10 minutos e estorna.
+- Limite de `MAX_INFLIGHT_ANALYSES` (3) jobs por pod, para proteger a memória
+  (o vídeo fica em RAM durante o job); acima disso `429`.
+- `DELETE /reports/{id}` remove um relatório; `DELETE /me` remove todos. Ainda não
+  há retenção automática.
+
+| Endpoint | Função |
+|---|---|
+| `POST /analyse` | `202 {report_id}`; `401 login_required`, `402`, `429` |
+| `GET /reports` | últimos 50 relatórios do usuário |
+| `GET /reports/{id}` | estado + resultado |
+| `DELETE /reports/{id}` | apaga um relatório concluído |
+
+## Dados guardados
+
+`users` (e-mail, nome, idioma, saldo, `referral_code`, `referred_by`),
+`user_identities`, `sessions` e `email_tokens` (só hashes de token),
+`bola_ledger`, `reports` (JSON do relatório, sem vídeo), `email_suppressions` e
+`waitlist_signups`. Nenhum IP, senha ou vídeo é persistido.
 
 ## Landmarks extraídos
 
