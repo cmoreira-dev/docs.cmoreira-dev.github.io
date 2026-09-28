@@ -37,6 +37,12 @@ flowchart LR
   [chart genérico](../kubernetes/generic-app-chart.md)) apontando para o(s)
   parâmetro(s) SSM que precisa — por exemplo, `api.teupadel.com` referencia
   `/homelab/teupadel/anthropic-api-key`.
+- A policy IAM do usuário `external-secrets-operator` limita por **prefixo de
+  path**: hoje `parameter/homelab/*` e `parameter/teupadel/*` (segredos do
+  produto: Google OAuth, chave de sessão, SES). Um path fora da policy faz o
+  `ExternalSecret` falhar (`SecretSyncedError`, `AccessDenied`) e o app perde
+  essas variáveis em silêncio. Essa policy foi criada à mão e ainda não está
+  em nenhum repo de IaC.
 - O Secret gerado vive só no namespace da app; não há um Secret compartilhado
   entre apps.
 - Apps sem segredo real (como `api.ia.local-sara`, um scraper público sem chave

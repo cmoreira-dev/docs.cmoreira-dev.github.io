@@ -9,7 +9,7 @@ passar pelo chart genérico (esse é reservado para apps próprias).
 |---|---|---|
 | `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito**, **Renovate** | Base do cluster — praticamente todo outro `gitops.*` depende de algo daqui (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
 | `gitops.ai-core-addons` | Ollama, LiteLLM | Serving de LLM local: Ollama roda inferência na GPU, LiteLLM expõe um proxy compatível com a API da OpenAI na frente dele (`llm.cmoreira.dev`) |
-| `gitops.cnpg` | CloudNativePG (operador Postgres) | Operador + `Cluster` por app consumidor: Backstage, LiteLLM, teupadel (waitlist da página de preços; contas/ledger de bolas depois) |
+| `gitops.cnpg` | CloudNativePG (operador Postgres) | Operador + `Cluster` por app consumidor: Backstage, LiteLLM, teupadel (waitlist, contas, ledger de bolas e histórico de relatórios) |
 | `gitops.monitoring` | Grafana Alloy, metrics-server | Observabilidade (coleta/telemetria) e métricas para HPA |
 | `gitops.headlamp` | Headlamp | Dashboard web para o cluster (`headlamp.cmoreira.dev`), login via Microsoft Entra ID |
 | `gitops.echoserver` | echoserver | Endpoint de teste para validar roteamento (Gateway API/HTTPRoute) |
