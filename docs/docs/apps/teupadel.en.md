@@ -25,12 +25,19 @@ sequenceDiagram
     participant LLM as Claude (Anthropic API)
 
     U->>UI: uploads video
-    UI->>API: POST /analyse (server-side proxy)
-    API->>Pose: POST /analyse (video + fps)
-    Pose-->>API: per-frame landmarks (17 points) + annotated GIF
-    API->>LLM: frames with detected pose + prompt (user's language)
-    LLM-->>API: structured report
-    API-->>UI: JSON (metadata + report)
+    UI->>API: POST /analyse (server-side proxy, session cookie)
+    API->>API: checks session and charges 1 bola (reservation)
+    API-->>UI: 202 + report_id
+    par in the background (asyncio task)
+        API->>Pose: POST /analyse (video + fps)
+        Pose-->>API: per-frame landmarks (17 points)
+        API->>LLM: frames with detected pose + prompt (user's language)
+        LLM-->>API: structured report
+        API->>API: stores in reports (done) or refunds the bola
+    and
+        UI->>API: GET /reports/{id} (polling, 3 s)
+    end
+    API-->>UI: report (JSON)
     UI-->>U: rendered report
 ```
 
@@ -49,6 +56,82 @@ reasoning input, but never surface as text in the response. When
 `analysis_possible: false` + `reason` (`no_stroke_detected` or
 `low_pose_detection`) without calling the Anthropic API at all — the UI shows
 fixed tips instead of an empty report.
+
+## Accounts, bolas and referrals
+
+Login is unified (magic link + Google): the same request creates the account if
+it doesn't exist yet. Google returns an already-verified e-mail, so no e-mail is
+sent — only the magic link goes through SES.
+
+Each analysis costs **1 bola**. The balance is `users.bolas` (a cache); the source
+of truth is the `bola_ledger` table: every movement is a **unique** `(user, reason,
+ref)` entry, which makes credits and refunds idempotent.
+
+| Movement | When | Amount |
+|---|---|---|
+| `welcome` | first e-mail confirmation (magic link or Google) | +3 |
+| `referral_received` / `referral_given` | the referred account confirms its e-mail | +1 each |
+| `analysis` | an analysis starts | −1 |
+| `analysis_refund` | analysis produced no report | +1 |
+
+**Referral:** the link is `/login?ref=<code>` (`referral_code` comes from `/me`).
+The code travels with the magic-link request (`email_tokens.referral_code`) or the
+Google OAuth `state` and is applied when the new account confirms its e-mail. No
+self-referral, and an account can only be referred once.
+
+Upload and the tool page stay open to anonymous visitors. On **Analyse**, users
+without a session are sent to login (`401 login_required`) and users without
+balance to `/pricing` (`402`).
+
+## Async analysis and report history
+
+`POST /analyse` doesn't block until the report is ready. The API reserves the
+bola, inserts a `reports` row and answers `202` with a `report_id`; the pipeline
+(pose processor → quality gate → LLM) runs in the background inside the pod. The
+UI polls `GET /reports/{id}`. If the user closes the page the report is still
+produced and shows up under **Account → My reports** (`/reports/[id]`). The
+**video is never stored** — only the report JSON — so a saved report has no player
+and no "Watch in video" links.
+
+The flow is a **lightweight saga with compensation**, orchestrated inside the API
+itself (no broker): reserve the bola → process → confirm (stays charged) or
+compensate (refund).
+
+```mermaid
+stateDiagram-v2
+    [*] --> processing: charge 1 bola (analysis)
+    processing --> done: report produced (bola consumed)
+    processing --> no_analysis: no strokes / low quality (refund)
+    processing --> failed: processor or LLM error (refund)
+    processing --> failed: lost job > 10 min (refund)
+    done --> [*]
+    no_analysis --> [*]
+    failed --> [*]
+```
+
+- Closing the report (`UPDATE … WHERE status = 'processing'`) and the refund run in
+  the same transaction; the refund key is `(user, analysis_refund, report_id)`, so
+  the job and the sweeper can never refund twice.
+- **Lost jobs** (pod restarted mid-run): any `GET /reports*` closes reports stuck in
+  `processing` for over 10 minutes as `failed`/`timeout` and refunds.
+- At most `MAX_INFLIGHT_ANALYSES` (3) jobs per pod to protect memory (the video sits
+  in RAM during the job); beyond that `429`.
+- `DELETE /reports/{id}` removes one report; `DELETE /me` removes all of them. No
+  automatic retention yet.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /analyse` | `202 {report_id}`; `401 login_required`, `402`, `429` |
+| `GET /reports` | the user's last 50 reports |
+| `GET /reports/{id}` | status + result |
+| `DELETE /reports/{id}` | delete a finished report |
+
+## Stored data
+
+`users` (e-mail, name, language, balance, `referral_code`, `referred_by`),
+`user_identities`, `sessions` and `email_tokens` (token hashes only), `bola_ledger`,
+`reports` (report JSON, no video), `email_suppressions` and `waitlist_signups`. No
+IP, password or video is persisted.
 
 ## Landmarks extracted
 

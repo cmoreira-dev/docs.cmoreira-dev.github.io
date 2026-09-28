@@ -10,7 +10,7 @@ apps).
 |---|---|---|
 | `gitops.core-addons` | cert-manager, External Secrets Operator, NGINX Gateway Fabric (+ CRDs), cloudflared, nvidia-device-plugin, argocd-image-updater, **Burrito**, **Renovate** | The cluster's base layer — practically every other `gitops.*` depends on something here (Gateway API, `ClusterSecretStore/aws-ssm`, TLS) |
 | `gitops.ai-core-addons` | Ollama, LiteLLM | Local LLM serving: Ollama runs inference on the GPU, LiteLLM exposes an OpenAI-compatible proxy in front of it (`llm.cmoreira.dev`) |
-| `gitops.cnpg` | CloudNativePG (Postgres operator) | Operator + first consumer database (Backstage) |
+| `gitops.cnpg` | CloudNativePG (Postgres operator) | Operator + one `Cluster` per consuming app: Backstage, LiteLLM, teupadel (waitlist, accounts, bolas ledger and report history) |
 | `gitops.monitoring` | Grafana Alloy, metrics-server | Observability (telemetry collection) and metrics for HPA |
 | `gitops.headlamp` | Headlamp | Web dashboard for the cluster (`headlamp.cmoreira.dev`), login via Microsoft Entra ID |
 | `gitops.echoserver` | echoserver | Test endpoint for validating routing (Gateway API/HTTPRoute) |
