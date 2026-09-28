@@ -104,6 +104,21 @@ hostname pattern (no path rewriting).
 from SSM Parameter Store — see
 [Secrets & Security](../architecture/secrets.md).
 
+## Closed beta and migrations
+
+Google login is open. While SES remains in the sandbox, magic links are sent
+only to `@teupadel.com` or individually verified SES email identities; other
+requests still return `202` without sending an email. To authorize a tester,
+run `aws sesv2 create-email-identity --email-identity <email> --region
+us-east-1`, have them click AWS's verification email, and inspect identities
+with `aws sesv2 list-email-identities --region us-east-1`.
+
+API migrations no longer run during application startup. The Deployment runs
+`python -m migrate` in an init container, with an advisory lock and one
+transaction per migration, before API replicas receive traffic. New
+migrations must be additive (expand/contract), because old and new versions
+coexist during rollouts.
+
 ## Telemetry & Observability
 
 Two channels, both inside the existing Grafana stack (Alloy → Grafana Cloud) —
