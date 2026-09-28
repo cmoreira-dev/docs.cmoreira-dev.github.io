@@ -104,6 +104,20 @@ dedicado (sem reescrita de path).
 partir do SSM Parameter Store — ver
 [Secrets & Segurança](../architecture/secrets.md).
 
+## Beta fechado e migrations
+
+O login Google está aberto. Durante o sandbox do SES, o magic link só é
+enviado para `@teupadel.com` ou para identidades de e-mail verificadas no SES;
+outros pedidos mantêm a resposta `202` sem enviar e-mail. Para autorizar um
+testador, criar a identidade com `aws sesv2 create-email-identity --email-identity
+<email> --region us-east-1`, aguardar o clique no e-mail da AWS e consultar
+`aws sesv2 list-email-identities --region us-east-1`.
+
+As migrations da API não correm no arranque do processo. O Deployment executa
+`python -m migrate` num init container, com lock advisory e uma transação por
+migration, antes de liberar as réplicas. Novas migrations devem ser aditivas
+(expand/contract), pois versões antiga e nova convivem durante rollouts.
+
 ## Telemetria & Observabilidade
 
 Dois canais, ambos dentro do stack Grafana existente (Alloy → Grafana Cloud) —
