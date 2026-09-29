@@ -71,3 +71,9 @@ segredo de runtime.
 Ambos os componentes rodam no namespace `sara`, com imagens publicadas no ECR
 (`<conta>.dkr.ecr.us-east-1.amazonaws.com/sara/api` e `.../sara/ui`) pelo
 pipeline descrito em [Build & Registry](../cicd/build-registry.md).
+
+## Documentação por componente
+
+- [Sara: API](sara-api.md): endpoints, contratos, scraping, variáveis de ambiente, imagem e deploy.
+- [Sara: UI](sara-ui.md): arquitetura, fluxo de UX, auto-scroll, playlist, variáveis de build e deploy.
+- [Sara: backlog](sara-backlog.md): pendências e estado atual do produto.

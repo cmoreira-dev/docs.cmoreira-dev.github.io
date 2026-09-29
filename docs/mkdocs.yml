@@ -58,6 +58,16 @@ plugins:
             Aplicações: Applications
             teupadel.com: teupadel.com
             Sara: Sara
+            API: API
+            UI: UI
+            Processor (GPU): Processor (GPU)
+            Backlog: Backlog
+            Marca: Brand
+            E-mail (SES): Email (SES)
+            Convenções: Conventions
+            Fluxo de trabalho com IA: AI workflow
+            Agentes locais: Local agents
+            Manutenção da documentação: Documentation upkeep
             CI/CD & Deployment: CI/CD & Deployment
             Build & Registry (ECR): Build & Registry (ECR)
             Do push ao cluster: From push to cluster
@@ -97,10 +107,25 @@ nav:
       - Template de novo app: gitops/template.md
       - Backstage: gitops/backstage.md
   - Aplicações:
-      - teupadel.com: apps/teupadel.md
-      - Sara: apps/sara.md
+      - teupadel.com:
+          - Visão geral: apps/teupadel.md
+          - API: apps/teupadel-api.md
+          - UI: apps/teupadel-ui.md
+          - Processor (GPU): apps/teupadel-processor.md
+          - Backlog: products/teupadel-backlog.md
+          - Marca: products/teupadel-brand.md
+          - E-mail (SES): products/teupadel-email-ses.md
+      - Sara:
+          - Visão geral: apps/sara.md
+          - API: apps/sara-api.md
+          - UI: apps/sara-ui.md
+          - Backlog: apps/sara-backlog.md
   - CI/CD & Deployment:
       - Build & Registry (ECR): cicd/build-registry.md
       - Do push ao cluster: cicd/deploy-flow.md
   - Padrões de Repositório: repos.md
+  - Convenções:
+      - Fluxo de trabalho com IA: conventions/ai-workflow.md
+      - Agentes locais: conventions/local-agents.md
+      - Manutenção da documentação: conventions/docs-maintenance.md
   - Argo CD: argocd.md
