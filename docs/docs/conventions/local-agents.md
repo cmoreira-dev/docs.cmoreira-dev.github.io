@@ -97,3 +97,27 @@ Log ou saída com mais de ~30 linhas → `analyze_logs`. Doc desatualizada depoi
 3. Registro em `src/server.mjs` com descrição dizendo QUANDO usar e que é somente leitura.
 4. Testes com executor e modelo injetados (sem rede) e um teste vivo pelo `fixtures/smoke.mjs`.
 5. Atualizar esta página e a tabela de roteamento do `CLAUDE.md` da raiz.
+
+## Verificar que está funcionando
+
+Não confie na resposta do Claude para saber se os agentes foram chamados: use estas provas, do mais
+simples ao mais independente.
+
+1. **Conexão:** `/mcp` no Claude Code deve listar `local-agents` conectado com 7 ferramentas. Sem isso,
+   nenhuma sessão consegue chamá-las (o `ToolSearch` da seção Ferramentas não encontra nada).
+2. **Registro de uso no servidor:** `cd ~/Projecs/local-agents && npm run stats`. Mostra arranques do servidor
+   (sessões que conectaram), chamadas por ferramenta, erros, latência média e tokens estimados mantidos fora do
+   contexto. O log é `logs/usage.jsonl`, uma linha JSON por chamada, sem conteúdo bruto.
+3. **Prova do lado do Ollama (independe do servidor):**
+   `grep '/api/chat' /opt/homebrew/var/log/ollama.log | tail` lista cada chamada com hora e duração;
+   `ollama ps` mostra o modelo carregado enquanto uma chamada roda.
+4. **Teste ativo:** numa sessão nova, pedir "estado do CI" ou "health check do Argo CD"; a chamada
+   `mcp__local-agents__...` aparece no transcript e ganha uma linha nova em `usage.jsonl`.
+5. **Se não conecta:** o registro atual vive em `~/Projecs/.mcp.json` (escopo de projeto: só vale para sessões
+   abaixo de `~/Projecs` e pode pedir aprovação de novo). Alternativa robusta, em escopo de usuário:
+   `claude mcp add --scope user local-agents -- node /Users/oliveirac/Projecs/local-agents/src/server.mjs`.
+   O stderr do servidor fica em `~/Library/Caches/claude-cli-nodejs/<projeto>/mcp-logs-local-agents/`.
+
+**Como ler os números:** `est_tokens_kept_out` é um limite inferior (entrada enviada ao modelo local menos o
+resultado devolvido) e chamadas pequenas dão 0. O ganho aparece com logs longos, `kubectl describe` e
+`check_actions` sobre muitos repos; o `gh`/`kubectl` bruto que o worker reduz antes do modelo não entra na conta.

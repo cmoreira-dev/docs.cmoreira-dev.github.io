@@ -97,3 +97,26 @@ mechanical task → `draft_code`. Always review before applying.
 3. Registration in `src/server.mjs` with a description saying WHEN to use it and that it is read-only.
 4. Tests with injected executor and model (no network) and a live check through `fixtures/smoke.mjs`.
 5. Update this page and the routing table in the root `CLAUDE.md`.
+
+## Verifying it works
+
+Do not rely on Claude's word that the agents were called: use these proofs, from simplest to most independent.
+
+1. **Connection:** `/mcp` in Claude Code should list `local-agents` connected with 7 tools. Without it no
+   session can call them (`ToolSearch` from the Tools section finds nothing).
+2. **Usage log in the server:** `cd ~/Projecs/local-agents && npm run stats`. Shows server starts (sessions
+   that connected), calls per tool, errors, average latency and estimated tokens kept out of context. The log
+   is `logs/usage.jsonl`, one JSON line per call, no raw content.
+3. **Proof on the Ollama side (independent of the server):**
+   `grep '/api/chat' /opt/homebrew/var/log/ollama.log | tail` lists every call with time and duration;
+   `ollama ps` shows the loaded model while a call runs.
+4. **Active test:** in a new session ask for "CI status" or an "Argo CD health check"; the
+   `mcp__local-agents__...` call shows in the transcript and adds a new line to `usage.jsonl`.
+5. **If it does not connect:** the current registration lives in `~/Projecs/.mcp.json` (project scope: only
+   applies to sessions under `~/Projecs` and may ask for approval again). Robust alternative, user scope:
+   `claude mcp add --scope user local-agents -- node /Users/oliveirac/Projecs/local-agents/src/server.mjs`.
+   The server's stderr is in `~/Library/Caches/claude-cli-nodejs/<project>/mcp-logs-local-agents/`.
+
+**Reading the numbers:** `est_tokens_kept_out` is a lower bound (input sent to the local model minus the result
+returned) and small calls give 0. The gain shows with long logs, `kubectl describe` and `check_actions` over many
+repos; the raw `gh`/`kubectl` output the worker reduces before the model is not counted.
