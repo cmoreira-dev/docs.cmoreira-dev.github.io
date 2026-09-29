@@ -240,3 +240,12 @@ ECR (`.../teupadel/api`, `.../teupadel/ui`, `.../teupadel/processor`) pelo
 pipeline descrito em [Build & Registry](../cicd/build-registry.md). O
 `teupadel-processor` é ClusterIP (`:8000`), sem HTTPRoute — só a `teupadel-api`
 lhe fala.
+
+## Documentação por componente
+
+- [API (`api.ia.teupadel.com`)](teupadel-api.md)
+- [UI (`ui.ia.teupadel.com`)](teupadel-ui.md)
+- [Processador de pose (`api.ia.pose-estimation`)](teupadel-processor.md)
+- [Backlog e estado](../products/teupadel-backlog.md)
+- [Marca e identidade visual](../products/teupadel-brand.md)
+- [E-mail e SES](../products/teupadel-email-ses.md)

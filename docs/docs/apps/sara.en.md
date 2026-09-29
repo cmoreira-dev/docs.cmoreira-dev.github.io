@@ -73,3 +73,9 @@ secret.
 Both components run in the `sara` namespace, with images published to ECR
 (`<account>.dkr.ecr.us-east-1.amazonaws.com/sara/api` and `.../sara/ui`) by
 the pipeline described in [Build & Registry](../cicd/build-registry.md).
+
+## Documentation per component
+
+- [Sara: API](sara-api.md): endpoints, contracts, scraping, environment variables, image and deploy.
+- [Sara: UI](sara-ui.md): architecture, UX flow, auto-scroll, playlist, build variables and deploy.
+- [Sara: backlog](sara-backlog.md): open items and current state of the product.
