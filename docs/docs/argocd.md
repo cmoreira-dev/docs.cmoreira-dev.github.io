@@ -60,3 +60,18 @@ O `argocd-image-updater` (addon em `gitops.core-addons`) observa o ECR e
 escreve de volta nos repos `gitops.*` quando uma nova tag de imagem chega,
 usando credenciais próprias via `ExternalSecret` — ver
 [Secrets & Segurança](architecture/secrets.md).
+
+## Armadilha: HTTPRoute OutOfSync sem diferença real
+
+Um `HTTPRoute` pode aparecer como `OutOfSync` (app `Healthy`) mesmo com `kubectl diff` vazio. Causa: o
+diff do Argo é do lado do cliente e o manifesto renderizado omite campos que o API server preenche por
+padrão (`group: gateway.networking.k8s.io` e `kind: Gateway` em `parentRefs`; `group: ""` e `kind: Service`
+em `backendRefs`).
+
+- **Manifesto próprio** (template do repo): listar esses campos explicitamente. É o que mantém o redirect do apex do
+  `gitops.teupadel.com` em `Synced`.
+- **Chart de terceiros que não deixa configurar** (ex.: o chart do Backstage fixa o `backendRef`): anotar a
+  `Application` com `argocd.argoproj.io/compare-options: ServerSideDiff=true` (suportado no Argo CD v3.4).
+- Diagnóstico: `helm template ... | kubectl diff -f -` (só leitura). Sem diferença = ruído de defaults.
+- `burrito` mostra `RepeatedResourceWarning` para `ServiceAccount burrito-runner`: o `tenant.yaml` do chart
+  upstream (0.14.0) o renderiza duas vezes. Inofensivo; não há como corrigir pelos values.

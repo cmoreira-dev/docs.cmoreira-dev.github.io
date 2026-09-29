@@ -60,3 +60,17 @@ and Git is automatically corrected by `selfHeal`.
 writes back to the `gitops.*` repos when a new image tag lands, using its
 own credentials via `ExternalSecret` — see
 [Secrets & Security](architecture/secrets.md).
+
+## Gotcha: HTTPRoute OutOfSync with no real difference
+
+An `HTTPRoute` can show `OutOfSync` (app `Healthy`) while `kubectl diff` is empty. Cause: Argo's diff is
+client-side and the rendered manifest omits fields the API server defaults (`group: gateway.networking.k8s.io`
+and `kind: Gateway` in `parentRefs`; `group: ""` and `kind: Service` in `backendRefs`).
+
+- **Your own manifest** (repo template): list those fields explicitly. This is what keeps the apex redirect in
+  `gitops.teupadel.com` `Synced`.
+- **Third-party chart that cannot be configured** (e.g. the Backstage chart hardcodes the `backendRef`): annotate
+  the `Application` with `argocd.argoproj.io/compare-options: ServerSideDiff=true` (supported in Argo CD v3.4).
+- Diagnosis: `helm template ... | kubectl diff -f -` (read-only). No difference = defaults noise.
+- `burrito` shows `RepeatedResourceWarning` for `ServiceAccount burrito-runner`: the upstream chart's
+  `tenant.yaml` (0.14.0) renders it twice. Harmless; cannot be fixed through values.
