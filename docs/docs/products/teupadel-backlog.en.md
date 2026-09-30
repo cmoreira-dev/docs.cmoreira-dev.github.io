@@ -25,7 +25,17 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
       (> 2 min), max 2 attempts, then `failed` + bola refund;
     - delete the S3 video at job end; `ANALYSIS_UPLOADS_BUCKET` in gitops.
 
-    Estimate: 7 to 10 h.
+    **Done on 2026-09-30 (api.ia.teupadel.com, queue PR):** migration 0008, `POST /analyses` + presigned parts
+    + `complete` + `GET /analyses/{id}`, worker with `SKIP LOCKED`, heartbeat, retry and refund, and video
+    deletion. **Still missing:** turning it on (`ANALYSIS_UPLOADS_BUCKET` in gitops) and items 33 to 35.
+- **33.** **CORS on the `cmoreira-dev-teupadel-analysis-uploads` bucket** (IaC `s3-analysis-uploads`): without
+    `aws_s3_bucket_cors_configuration` (PUT and upload headers, origin `https://www.teupadel.com`) the browser
+    cannot send the parts. Merging into `iac.homelab-live-infra` triggers the apply: only with confirmation.
+    Then the UI CSP needs the S3 host in `connect-src`. _(open, 2026-09-30)_
+- **34.** **Video bucket region:** it is in `us-east-1`, the roadmap asks for the EU (GDPR). Decide before
+    turning it on: recreate in `eu-west-1` (the bucket is temporary, nothing to migrate). _(open, 2026-09-30)_
+- **35.** **WebM:** Chrome Android records WebM and the processor only accepts mp4/mov/avi/mkv. Normalize with
+    ffmpeg (processor or API) before the guided camera. _(open, 2026-09-30)_
 - **29.** **Per-movement and overall scores + evolution chart** in "My account" (design in the
     [roadmap](teupadel-roadmap.md#scores-per-movement-and-overall)): additive migration with `movement`,
     `score`, `reference_version`, `analysis_version`; `GET /me/progress`.
