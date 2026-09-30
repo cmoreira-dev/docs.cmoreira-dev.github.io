@@ -46,7 +46,7 @@ Business errors carry a text `detail`; the stable codes for the UI are `login_re
 
 `multipart/form-data`:
 
-- `file`: video `mp4`/`mov`/`avi`/`mkv`, max 100 MB (a `Content-Length` above 100 MB plus 2 MB of
+- `file`: video `mp4`/`mov`/`avi`/`mkv`/`webm`, max 100 MB (a `Content-Length` above 100 MB plus 2 MB of
   margin is rejected up front; extension validated with `.lower()`).
 - `fps` (query): integer 1-10, default 2 (out of range, FastAPI answers `422`).
 - `lang` (query): `en` | `pt-pt` | `pt-br`, default `pt-pt` (`400` otherwise). Only changes the language
@@ -270,7 +270,7 @@ for the 2nd attempt.
 
 **Privacy:** the bucket has no versioning and the lifecycle rule (IaC `s3-analysis-uploads`, 1 day) deletes
 whatever is left. Never keep a video for debugging. **Infra to do** (see backlog): bucket CORS so the `PUT`
-can come from the browser, and the region (the bucket is in `us-east-1`; the roadmap asks for the EU).
+can come from the browser and the EU region: both in the IaC PR (`iac.homelab-live-infra`#36, bucket `...-uploads-eu` in `eu-west-1`), which only counts after the apply.
 
 ## Anti-abuse
 
@@ -359,7 +359,7 @@ Production values live in `gitops.teupadel.com/helm/api/values.yaml` (configMap 
 | `TERMS_VERSION` | `2026-09-draft` | Terms version recorded at account creation. |
 | `DISPOSABLE_EMAIL_DOMAINS` | empty | Extra blocked domains, comma-separated. |
 | `MAX_INFLIGHT_ANALYSES` | `3` | Concurrent jobs per pod. |
-| `ANALYSIS_UPLOADS_BUCKET` / `ANALYSIS_UPLOADS_PREFIX` / `ANALYSIS_UPLOADS_REGION` | (off) / `uploads/` / `us-east-1` | S3 bucket for the temporary videos. Without the bucket, `/analyses*` answers `503` and the queue worker does not start. |
+| `ANALYSIS_UPLOADS_BUCKET` / `ANALYSIS_UPLOADS_PREFIX` / `ANALYSIS_UPLOADS_REGION` | (off) / `uploads/` / `eu-west-1` | S3 bucket for the temporary videos (EU: `cmoreira-dev-teupadel-analysis-uploads-eu`). Without the bucket, `/analyses*` answers `503` and the queue worker does not start. |
 | `REPORT_RETENTION_DAYS` | `0` | `>0` deletes finished reports older than N days; `0` = keep. |
 | `SES_REGION` / `SES_SENDER` / `SES_CONFIGURATION_SET` | `us-east-1` / `TeuPadel <noreply@teupadel.com>` / `teupadel-transactional` | Amazon SES. |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | (none) | The API's IAM user (SSM `/teupadel/ses/api`). Without credentials (`AWS_ROLE_ARN`/`AWS_PROFILE` also count), `email_sender.py` is a no-op: it logs and does not send, without failing the request. |

@@ -46,7 +46,7 @@ e `captcha_failed`.
 
 `multipart/form-data`:
 
-- `file`: vídeo `mp4`/`mov`/`avi`/`mkv`, máx. 100 MB (`Content-Length` acima de 100 MB + 2 MB de
+- `file`: vídeo `mp4`/`mov`/`avi`/`mkv`/`webm`, máx. 100 MB (`Content-Length` acima de 100 MB + 2 MB de
   margem é recusado logo; extensão validada com `.lower()`).
 - `fps` (query): inteiro 1-10, default 2 (fora do intervalo, o FastAPI responde `422`).
 - `lang` (query): `en` | `pt-pt` | `pt-br`, default `pt-pt` (`400` se outro). Só muda o idioma do
@@ -261,7 +261,7 @@ vídeo do S3 no fim, com sucesso ou falha**. Bate `heartbeat_at` a cada 30 s. A 
 
 **Privacidade:** o bucket não tem versionamento e a regra de ciclo de vida (IaC `s3-analysis-uploads`, 1 dia)
 apaga o que sobrar. Nunca guardar vídeo para depurar. **Pendências de infra** (ver backlog): CORS do bucket
-para o `PUT` vir do browser, e a região (o bucket está em `us-east-1`; o roadmap pede UE).
+para o `PUT` vir do browser e a região UE: ambos no PR do IaC (`iac.homelab-live-infra`#36, bucket `...-uploads-eu` em `eu-west-1`), que só vale depois do apply.
 
 ## Anti-abuso
 
@@ -350,7 +350,7 @@ Valores de produção em `gitops.teupadel.com/helm/api/values.yaml` (configMap =
 | `TERMS_VERSION` | `2026-09-draft` | Versão dos Termos gravada ao criar a conta. |
 | `DISPOSABLE_EMAIL_DOMAINS` | vazio | Domínios extra bloqueados, separados por vírgula. |
 | `MAX_INFLIGHT_ANALYSES` | `3` | Jobs simultâneos por pod. |
-| `ANALYSIS_UPLOADS_BUCKET` / `ANALYSIS_UPLOADS_PREFIX` / `ANALYSIS_UPLOADS_REGION` | (desligado) / `uploads/` / `us-east-1` | Bucket S3 dos vídeos temporários. Sem o bucket, `/analyses*` dá `503` e o worker da fila não arranca. |
+| `ANALYSIS_UPLOADS_BUCKET` / `ANALYSIS_UPLOADS_PREFIX` / `ANALYSIS_UPLOADS_REGION` | (desligado) / `uploads/` / `eu-west-1` | Bucket S3 dos vídeos temporários (UE: `cmoreira-dev-teupadel-analysis-uploads-eu`). Sem o bucket, `/analyses*` dá `503` e o worker da fila não arranca. |
 | `REPORT_RETENTION_DAYS` | `0` | `>0` apaga relatórios concluídos mais antigos; `0` = guardar. |
 | `SES_REGION` / `SES_SENDER` / `SES_CONFIGURATION_SET` | `us-east-1` / `TeuPadel <noreply@teupadel.com>` / `teupadel-transactional` | Amazon SES. |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | (nenhuma) | IAM user da API (SSM `/teupadel/ses/api`). Sem credenciais (`AWS_ROLE_ARN`/`AWS_PROFILE` também servem), `email_sender.py` fica no-op: regista e não envia, sem falhar o pedido. |

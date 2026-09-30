@@ -24,7 +24,7 @@ It runs in the `teupadel` namespace (ClusterIP Service `teupadel-processor:8000`
 
 ### POST /analyse
 
-`multipart/form-data`: `file` (`mp4`/`mov`/`avi`/`mkv`, max 100 MB) and query `fps` (integer 1-10,
+`multipart/form-data`: `file` (`mp4`/`mov`/`avi`/`mkv`/`webm`, max 100 MB) and query `fps` (integer 1-10,
 default 2) and optional `movement` (`serve`/`forehand`/`backhand`/`volley`/`smash`). Errors: `413` (video
 too large), `400` (format, `fps` outside 1-10, invalid `movement`, invalid `Content-Length`), `500`
 (processing failure).
