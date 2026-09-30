@@ -65,6 +65,7 @@ e `Terms.draftNote` são os outros conteúdos pendentes sinalizados na página.
 | `GET`/`DELETE /api/me` | `/me` | Sessão, saldo, `referral_code`; `DELETE` apaga a conta |
 | `GET /api/reports`, `GET`/`DELETE /api/reports/[id]` | `/reports*` | Histórico |
 | `GET /api/me/progress` | `/me/progress` | Séries de notas por golpe e geral (gráfico de "Minha conta") |
+| `POST /api/analyses`, `GET /api/analyses/[id]`, `POST /api/analyses/[id]/parts`, `POST /api/analyses/[id]/complete` | `/analyses*` | Upload direto para o S3 por partes (ver "Upload direto") |
 | `GET /health` | (local) | Probe do Kubernetes |
 
 Os helpers comuns (`apiBase`, `forwardCookieHeader`, `copySetCookie`, `forwardUserAgent`) estão
@@ -219,3 +220,28 @@ Revisão de 2026-09-29:
 - **Ainda não feito (Fase 2 do [roadmap](../products/teupadel-roadmap.md)):** câmera guiada (MediaPipe) e upload
   pré-assinado. A câmera exige mudar a CSP (WASM do MediaPipe) e o `Permissions-Policy`, hoje `camera=()`,
   para `camera=(self)`.
+
+
+## Upload direto para o S3 (por partes)
+
+`analyseVideo` (`src/api/client.js`) usa o fluxo da API `/analyses` ([API, Análises com upload direto](teupadel-api.md#analises-com-upload-direto-e-fila-duravel)):
+
+1. `POST /api/analyses` abre a análise (debita a bola) e devolve `part_size`/`parts`. Se a API responde `503`
+   (`ANALYSIS_UPLOADS_BUCKET` desligado), cai no envio antigo `POST /analyse` pela própria UI.
+2. `src/lib/uploadParts.js` envia as partes ao S3 com `PUT` nas URLs pré-assinadas (`POST /api/analyses/{id}/parts`,
+   em lotes de 50): 3 em paralelo, até 5 tentativas com espera (1 s a 15 s), espera pelo evento `online`, pede
+   URL nova se o S3 responde `403` (expirada) e mostra o **progresso real** (XHR `upload.onprogress`). Usa
+   `navigator.wakeLock` (melhor esforço) para o ecrã não bloquear durante o envio.
+3. `POST /api/analyses/{id}/complete` fecha o upload; se o S3 acusar partes em falta (`409 parts_missing`),
+   reenvia só essas (máx. 2 vezes).
+4. Depois o fluxo é o de sempre: `waitForReport` faz polling de `/api/reports/{id}` (`uploading`/`queued` contam
+   como `processing`).
+
+Falha no envio = mensagem genérica (sem detalhe do S3); 401 e 402 continuam a redirecionar para login e preços.
+A CSP leva o host do bucket em `connect-src` (`UPLOADS_ORIGIN` em `next.config.js`, fixo porque as `headers()` são
+congeladas no build: mudar de bucket ou região exige mudar ali). **A retoma é só dentro da sessão**: o `File` não
+sobrevive a um reload da página.
+
+Os textos que diziam "o vídeo nunca é armazenado" (rodapé, home, FAQ, Política de Privacidade, etc.) passaram a
+dizer que o vídeo é apagado logo após a análise (no máximo 24 h) e que só ficam o relatório e os pontos do
+esqueleto, na conta. A Política continua rascunho sem revisão jurídica (backlog 5).
