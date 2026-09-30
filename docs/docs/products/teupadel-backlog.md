@@ -50,7 +50,7 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
    Instrumentar os eventos `payment_*` (helpers prontos) quando houver pagamento.
 - **3.** **UX:**
     - o vídeo escolhido perde-se quando o visitante é mandado para o login;
-    - o ecrã de carregamento não diz que se pode sair e ver o relatório no histórico;
+    - o ecrã de carregamento não diz que se pode sair e ver o relatório no histórico (durante o envio já diz para manter a página aberta até acabar, ver UI#41);
     - o design ainda tem de confirmar o widget do Turnstile.
 - **26.** **Turnstile em `/login` sob a nova CSP: testar no browser** (DevTools, sem erros de CSP) e percorrer
     `/analysis` de ponta a ponta: Next 16, React 19 e Node 24 foram para produção sem teste manual.
@@ -60,8 +60,9 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
 
 - **4.** **Retenção dos relatórios:** decidir o prazo (`REPORT_RETENTION_DAYS`, hoje desligado).
 - **5.** **Política de Privacidade e Termos** continuam como rascunho, sem revisão jurídica. O texto tem de
-   citar os relatórios guardados, o S3 temporário (quando existir a fila), o banner de cookies e os
-   subcontratantes (SES, Google, Cloudflare).
+   citar os relatórios guardados e os pontos do esqueleto como dado pessoal, o S3 temporário na UE (ativo desde
+   2026-09-30; os textos do site já dizem "apagado logo após a análise, no máximo 24 h"), o banner de cookies e os
+   subcontratantes (SES, Google, Cloudflare, AWS S3).
 
 ## E-mail (SES)
 

@@ -51,7 +51,7 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
   Instrument the `payment_*` events (helpers ready) when payment exists.
 - **3.** **UX:**
     - the chosen video is lost when the visitor is sent to login;
-    - the loading screen does not say the user can leave and find the report in the history;
+    - the loading screen does not say the user can leave and find the report in the history (during the upload it already says to keep the page open until it finishes, see UI#41);
     - design still has to confirm the Turnstile widget.
 - **26.** **Turnstile on `/login` under the new CSP: test in the browser** (DevTools, no CSP errors) and walk
   through `/analysis` end to end: Next 16, React 19 and Node 24 went to production without manual testing.
@@ -61,8 +61,9 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
 
 - **4.** **Report retention:** decide the period (`REPORT_RETENTION_DAYS`, currently off).
 - **5.** **Privacy Policy and Terms** are still drafts, without legal review. The text must mention stored
-  reports, the temporary S3 (once the queue exists), the cookie banner and the subprocessors (SES, Google,
-  Cloudflare).
+  reports and skeleton points as personal data, the temporary EU S3 (live since 2026-09-30; the site texts already
+  say "deleted right after the analysis, 24 hours at most"), the cookie banner and the subprocessors (SES, Google,
+  Cloudflare, AWS S3).
 
 ## E-mail (SES)
 
