@@ -201,3 +201,18 @@ Review of 2026-09-29:
   the note "we refined the model". With fewer than 2 analyses of a movement it shows only the score.
 - `ReportView` shows `result.scores.score` with the **beta** tag in the report summary.
 - Texts live in the `Progress` namespace of the 3 locales. Contract: [API, Scores](teupadel-api.md#scores-beta).
+
+
+## PWA (installable)
+
+- `src/app/manifest.js` serves `/manifest.webmanifest` (`display: standalone`, `start_url: /`, `any` and
+  `maskable` icons at 192 and 512 px in `public/icons/`).
+- `public/sw.js` (registered by `PwaRegister.jsx`, production only) caches **only the shell**: hashed files
+  under `/_next/static/` (cache-first) and `offline.html`. Navigations always go to the network. It **never**
+  stores video, reports, page HTML, `/api`, `/analyse` or `/reports`. Changed the SW or `offline.html`? Bump
+  `VERSION` in `sw.js`. `next.config.js` serves `/sw.js` with `Cache-Control: no-cache`.
+- `InstallApp.jsx` (in `/account`): an "Install" button on Android/Chrome (`beforeinstallprompt`) and, on iOS,
+  the "Share → Add to Home Screen" instructions (also required for Web Push). Already installed: hidden.
+- **Not done yet (Phase 2 of the [roadmap](../products/teupadel-roadmap.md)):** guided camera (MediaPipe) and
+  presigned upload. The camera needs a CSP change (MediaPipe WASM) and `Permissions-Policy`, currently
+  `camera=()`, to become `camera=(self)`.

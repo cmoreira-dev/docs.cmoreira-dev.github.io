@@ -29,8 +29,9 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
 - **29.** **Notas por golpe e geral + gráfico de evolução** em "Minha conta" (desenho no
     [roadmap](teupadel-roadmap.md#notas-por-golpe-e-geral)): migração aditiva com `movement`, `score`,
     `reference_version`, `analysis_version`; `GET /me/progress`. _(API feita em 2026-09-30, api.ia.teupadel.com#38; UI: gráfico + selo beta em PR; falta calibrar com o professor, ver 31)_
-- **30.** **PWA (Fase 2 do roadmap):** manifest, service worker só da casca, câmera guiada com MediaPipe,
-    upload pré-assinado com retomada. _(aberto, 2026-09-30)_
+- **30.** **PWA (Fase 2 do roadmap):** manifest, service worker só da casca e botão de instalação em PR
+    (ui#40, 2026-09-30). Faltam a câmera guiada com MediaPipe (CSP e `Permissions-Policy: camera=(self)`) e o
+    upload pré-assinado com retomada (depende do contrato da API, Fase 1). _(parcial, 2026-09-30)_
 - **31.** **Biblioteca de referência com professor:** hoje 5 clips de YouTube, sem calibração e com licença por
     rever. Bloqueia a calibração das notas (tolerâncias e pesos). Sem data. _(aberto, 2026-09-30)_
 - **32.** **`EmailSender` com segundo provedor** (Brevo, Scaleway TEM, Postmark ou Resend), enquanto o magic link
