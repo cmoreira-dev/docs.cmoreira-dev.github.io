@@ -38,6 +38,7 @@ e `captcha_failed`.
 | `GET /reports`, `GET /reports/{id}`, `DELETE /reports/{id}` | sessão | Histórico de relatórios. Ver "Relatórios assíncronos". |
 | `POST /auth/magic-link`, `GET /auth/verify`, `GET /auth/google`, `GET /auth/callback/google`, `POST /auth/logout` | mista | Login unificado. Ver "Autenticação". |
 | `GET /me`, `DELETE /me` | sessão | Conta e RGPD. |
+| `GET /me/progress` | sessão | Evolução das notas por golpe e geral. Ver "Notas". |
 | `POST /telemetry/events` | não | Eventos de produto do browser (via proxy da UI). |
 | `POST /waitlist` | não | Interesse na página de Preços. |
 
@@ -192,6 +193,32 @@ O cliente pode fechar a página: o relatório fica no histórico.
 | `GET /reports/{id}` | Mesmos campos + `result` (o payload acima, ou `null`) + `bolas` (saldo atual). `404` se não existir ou não for do utilizador. |
 | `DELETE /reports/{id}` | Apaga um relatório que não esteja `processing`; `404` caso contrário. |
 
+### Notas (beta)
+
+Cada análise concluída traz `result.scores`, calculado por `scoring.py` **só** a partir dos desvios DTW do
+processor (o LLM não entra). Desenho e calibração: [roadmap](../products/teupadel-roadmap.md#notas-por-golpe-e-geral).
+
+```json
+"scores": {
+  "score": 72, "movement": "forehand",
+  "phases": { "preparation": 80, "impact": 65, "follow_through": null },
+  "metrics": { "impact": { "elbow_angle_right_deg": { "score": 70, "deviation": 11.2 } } },
+  "strokes": [ { "movement": "forehand", "score": 72 } ],
+  "reference_version": "2026-09-26-yt5", "analysis_version": "1"
+}
+```
+
+- `scores` é `null` quando os desvios não dão dados suficientes (fase sem 50% das features, ou golpe sem
+  50% do peso das fases); a nota nunca é inventada.
+- As colunas `reports.score`, `reference_version` e `analysis_version` (migration 0007) espelham o bloco
+  para o gráfico não ler o JSON de cada relatório.
+- Tolerâncias e pesos são **provisórios** (biblioteca de 5 clips sem calibração). Mudar o cálculo = subir
+  `ANALYSIS_VERSION`; trocar a biblioteca = `REFERENCE_VERSION` (env, padrão `2026-09-26-yt5`).
+- `GET /me/progress` (`401` sem sessão) devolve `{movements: {golpe: [ponto]}, overall: [ponto],
+  version_breaks: [data]}`, com até 500 relatórios `done` com nota; `ponto` = `{id, date, score,
+  reference_version, analysis_version}`. `overall` = média da última nota de cada golpe nos últimos 30 dias.
+  `version_breaks` marca a troca de versão: a UI mostra "refinámos o modelo" e não liga os pontos.
+
 `failure_reason`: `no_stroke_detected`, `low_pose_detection`, `low_stroke_confidence`, `internal_error`,
 `http_<código>`, `timeout`.
 
@@ -308,11 +335,13 @@ api.ia.teupadel.com/
 ├── ses_events.py         worker SQS de bounces/reclamações -> email_suppressions
 ├── maintenance.py        limpeza horária (sessões, tokens, relatórios antigos)
 ├── disposable_emails.py  domínios descartáveis
+├── scoring.py            notas determinísticas (0-100) e séries do gráfico de evolução
 ├── telemetry.py          OTel, baggage, eventos de negócio, formatter JSON
 ├── db.py                 pool asyncpg (lazy; DATABASE_URL ou PG*)
 ├── migrate.py            `python -m migrate` (init container, advisory lock)
 ├── migrations/           0001_waitlist_signups, 0002_auth, 0003_login_ux,
-│                         0004_bolas_ledger_referral, 0005_reports, 0006_welcome_claims_terms
+│                         0004_bolas_ledger_referral, 0005_reports, 0006_welcome_claims_terms,
+│                         0007_report_scores
 ├── tests/                pytest (abuso, auth, normalização, SES, telemetria, Turnstile, integração com BD)
 ├── openapi.yaml · requirements.txt · requirements-dev.txt · Dockerfile
 └── .github/workflows/    build-push.yml (ECR), test.yml (pytest com Postgres 17, em PR)

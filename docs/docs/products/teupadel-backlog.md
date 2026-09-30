@@ -10,13 +10,13 @@
     cada atualização (`AAAA-MM-DD`). Item concluído: mova para "Fechado" com a data e onde vive agora
     (repo, PR, página de docs). Item novo: acrescente na secção certa, com número seguinte.
 
-Atualizado em **2026-09-29**. Estado: login (magic link + Google), bolas com ledger, indicações, análise
+Atualizado em **2026-09-30** (roadmap v1 em [teupadel-roadmap](teupadel-roadmap.md)). Estado: login (magic link + Google), bolas com ledger, indicações, análise
 assíncrona com histórico, anti-abuso (Fase 6), Turnstile, worker de bounces do SES, bucket S3 da fila e
 telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
 
 ## Produto
 
-- **1.** **Fila durável de análises (lógica).** A infra (bucket `cmoreira-dev-teupadel-analysis-uploads` e
+- **1.** **Fila durável de análises (lógica).** _Revisto em 2026-09-30: o upload passa a ser por URL pré-assinada direto para o S3 (roadmap, Fase 1), em vez de streaming pela API._ A infra (bucket `cmoreira-dev-teupadel-analysis-uploads` e
    permissões do usuário `teupadel-api`) já existe. Falta, na API:
     - migração com status `queued`, `heartbeat_at`, `attempts`, `video_key`;
     - upload em streaming (multipart) para o S3, o ponto mais delicado; tira também o vídeo de 100 MB da
@@ -26,6 +26,15 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
     - apagar o vídeo do S3 no fim do job; `ANALYSIS_UPLOADS_BUCKET` no gitops.
 
     Estimativa: 7 a 10 h.
+- **29.** **Notas por golpe e geral + gráfico de evolução** em "Minha conta" (desenho no
+    [roadmap](teupadel-roadmap.md#notas-por-golpe-e-geral)): migração aditiva com `movement`, `score`,
+    `reference_version`, `analysis_version`; `GET /me/progress`. _(aberto, 2026-09-30)_
+- **30.** **PWA (Fase 2 do roadmap):** manifest, service worker só da casca, câmera guiada com MediaPipe,
+    upload pré-assinado com retomada. _(aberto, 2026-09-30)_
+- **31.** **Biblioteca de referência com professor:** hoje 5 clips de YouTube, sem calibração e com licença por
+    rever. Bloqueia a calibração das notas (tolerâncias e pesos). Sem data. _(aberto, 2026-09-30)_
+- **32.** **`EmailSender` com segundo provedor** (Brevo, Scaleway TEM, Postmark ou Resend), enquanto o magic link
+    estiver bloqueado pelo SES (ver 6 e 7). _(aberto, 2026-09-30)_
 - **2.** **Pagamento e planos.** `/pricing` e a waitlist existem; não há checkout nem compra de bolas.
    Instrumentar os eventos `payment_*` (helpers prontos) quando houver pagamento.
 - **3.** **UX:**
