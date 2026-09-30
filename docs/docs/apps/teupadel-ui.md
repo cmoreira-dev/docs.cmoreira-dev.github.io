@@ -203,3 +203,19 @@ Revisão de 2026-09-29:
   nota "refinámos o modelo". Com menos de 2 análises do golpe mostra só a nota.
 - `ReportView` mostra `result.scores.score` com o selo **beta** no resumo do relatório.
 - Textos no namespace `Progress` dos 3 idiomas. Contrato: [API, Notas](teupadel-api.md#notas-beta).
+
+
+## PWA (instalável)
+
+- `src/app/manifest.js` serve `/manifest.webmanifest` (`display: standalone`, `start_url: /`, ícones `any` e
+  `maskable` de 192 e 512 px em `public/icons/`).
+- `public/sw.js` (registado por `PwaRegister.jsx`, só em produção) guarda **apenas a casca**: os ficheiros com
+  hash de `/_next/static/` (cache-first) e `offline.html`. Navegações vão sempre à rede. **Nunca** guarda vídeo,
+  relatórios, HTML de páginas, `/api`, `/analyse` nem `/reports`. Mudou o SW ou o `offline.html`? Suba
+  `VERSION` em `sw.js`. O `next.config.js` serve `/sw.js` com `Cache-Control: no-cache`.
+- `InstallApp.jsx` (em `/account`): botão "Instalar" no Android/Chrome (`beforeinstallprompt`) e, no iOS,
+  as instruções "Partilhar → Adicionar ao ecrã principal" (necessário também para o Web Push). Já instalada:
+  não aparece.
+- **Ainda não feito (Fase 2 do [roadmap](../products/teupadel-roadmap.md)):** câmera guiada (MediaPipe) e upload
+  pré-assinado. A câmera exige mudar a CSP (WASM do MediaPipe) e o `Permissions-Policy`, hoje `camera=()`,
+  para `camera=(self)`.

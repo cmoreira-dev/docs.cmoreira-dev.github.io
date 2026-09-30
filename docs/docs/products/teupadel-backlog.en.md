@@ -30,8 +30,9 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
     [roadmap](teupadel-roadmap.md#scores-per-movement-and-overall)): additive migration with `movement`,
     `score`, `reference_version`, `analysis_version`; `GET /me/progress`.
     _(API done 2026-09-30, api.ia.teupadel.com#38; UI: chart + beta tag in PR; calibration with the coach still missing, see 31)_
-- **30.** **PWA (roadmap Phase 2):** manifest, shell-only service worker, guided camera with MediaPipe,
-    presigned upload with resume. _(open, 2026-09-30)_
+- **30.** **PWA (roadmap Phase 2):** manifest, shell-only service worker and install button in PR
+    (ui#40, 2026-09-30). Still missing: guided camera with MediaPipe (CSP and `Permissions-Policy:
+    camera=(self)`) and presigned upload with resume (depends on the API contract, Phase 1). _(partial, 2026-09-30)_
 - **31.** **Reference library with a coach:** today 5 YouTube clips, uncalibrated, license to review. Blocks
     score calibration (tolerances and weights). No date. _(open, 2026-09-30)_
 - **32.** **`EmailSender` with a second provider** (Brevo, Scaleway TEM, Postmark or Resend) while the magic
