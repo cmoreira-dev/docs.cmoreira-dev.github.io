@@ -10,13 +10,13 @@
     and date every update (`YYYY-MM-DD`). Finished item: move it to "Closed" with the date and where it
     lives now (repo, PR, docs page). New item: add it to the right section with the next number.
 
-Updated on **2026-09-29**. State: login (magic link + Google), bolas with ledger, referrals, async
+Updated on **2026-09-30** (roadmap v1 in [teupadel-roadmap](teupadel-roadmap.md)). State: login (magic link + Google), bolas with ledger, referrals, async
 analysis with history, anti-abuse (Phase 6), Turnstile, SES bounce worker, the queue's S3 bucket and
 telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
 
 ## Product
 
-- **1.** **Durable analysis queue (logic).** The infra (bucket `cmoreira-dev-teupadel-analysis-uploads` and
+- **1.** **Durable analysis queue (logic).** _Revised 2026-09-30: upload becomes a presigned-URL direct-to-S3 upload (roadmap, Phase 1) instead of streaming through the API._ The infra (bucket `cmoreira-dev-teupadel-analysis-uploads` and
   `teupadel-api` user permissions) already exists. Still missing in the API:
     - migration with status `queued`, `heartbeat_at`, `attempts`, `video_key`;
     - streaming (multipart) upload to S3, the trickiest part; it also takes the 100 MB video out of pod
@@ -26,6 +26,16 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
     - delete the S3 video at job end; `ANALYSIS_UPLOADS_BUCKET` in gitops.
 
     Estimate: 7 to 10 h.
+- **29.** **Per-movement and overall scores + evolution chart** in "My account" (design in the
+    [roadmap](teupadel-roadmap.md#scores-per-movement-and-overall)): additive migration with `movement`,
+    `score`, `reference_version`, `analysis_version`; `GET /me/progress`.
+    _(open, 2026-09-30)_
+- **30.** **PWA (roadmap Phase 2):** manifest, shell-only service worker, guided camera with MediaPipe,
+    presigned upload with resume. _(open, 2026-09-30)_
+- **31.** **Reference library with a coach:** today 5 YouTube clips, uncalibrated, license to review. Blocks
+    score calibration (tolerances and weights). No date. _(open, 2026-09-30)_
+- **32.** **`EmailSender` with a second provider** (Brevo, Scaleway TEM, Postmark or Resend) while the magic
+    link is blocked by SES (see 6 and 7). _(open, 2026-09-30)_
 - **2.** **Payment and plans.** `/pricing` and the waitlist exist; there is no checkout or bola purchase.
   Instrument the `payment_*` events (helpers ready) when payment exists.
 - **3.** **UX:**

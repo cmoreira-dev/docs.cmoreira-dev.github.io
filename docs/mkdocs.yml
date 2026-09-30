@@ -112,6 +112,7 @@ nav:
           - API: apps/teupadel-api.md
           - UI: apps/teupadel-ui.md
           - Processor (GPU): apps/teupadel-processor.md
+          - Roadmap: products/teupadel-roadmap.md
           - Backlog: products/teupadel-backlog.md
           - Marca: products/teupadel-brand.md
           - E-mail (SES): products/teupadel-email-ses.md

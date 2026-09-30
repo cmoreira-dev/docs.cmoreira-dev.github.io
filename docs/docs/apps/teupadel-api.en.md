@@ -38,6 +38,7 @@ Business errors carry a text `detail`; the stable codes for the UI are `login_re
 | `GET /reports`, `GET /reports/{id}`, `DELETE /reports/{id}` | session | Report history. See "Asynchronous reports". |
 | `POST /auth/magic-link`, `GET /auth/verify`, `GET /auth/google`, `GET /auth/callback/google`, `POST /auth/logout` | mixed | Unified login. See "Authentication". |
 | `GET /me`, `DELETE /me` | session | Account and GDPR. |
+| `GET /me/progress` | session | Score evolution per movement and overall. See "Scores". |
 | `POST /telemetry/events` | no | Product events from the browser (via the UI proxy). |
 | `POST /waitlist` | no | Interest capture on the Pricing page. |
 
@@ -195,6 +196,34 @@ otherwise `429`). The client may close the page: the report stays in the history
 | `GET /reports` | Latest 50 for the user, without the report JSON: `id`, `status`, `filename`, `movement`, `lang`, `failure_reason`, `created_at`, `finished_at`. |
 | `GET /reports/{id}` | Same fields + `result` (the payload above, or `null`) + `bolas` (current balance). `404` if it does not exist or is not the user's. |
 | `DELETE /reports/{id}` | Deletes a report that is not `processing`; `404` otherwise. |
+
+### Scores (beta)
+
+Each completed analysis carries `result.scores`, computed by `scoring.py` **only** from the processor's DTW
+deviations (the LLM is not involved). Design and calibration:
+[roadmap](../products/teupadel-roadmap.md#scores-per-movement-and-overall).
+
+```json
+"scores": {
+  "score": 72, "movement": "forehand",
+  "phases": { "preparation": 80, "impact": 65, "follow_through": null },
+  "metrics": { "impact": { "elbow_angle_right_deg": { "score": 70, "deviation": 11.2 } } },
+  "strokes": [ { "movement": "forehand", "score": 72 } ],
+  "reference_version": "2026-09-26-yt5", "analysis_version": "1"
+}
+```
+
+- `scores` is `null` when the deviations do not give enough data (a phase without 50% of the features, or a
+  stroke without 50% of the phase weight); the score is never invented.
+- The columns `reports.score`, `reference_version` and `analysis_version` (migration 0007) mirror the block
+  so the chart does not read each report's JSON.
+- Tolerances and weights are **provisional** (5-clip uncalibrated library). Changing the calculation = bump
+  `ANALYSIS_VERSION`; swapping the library = `REFERENCE_VERSION` (env, default `2026-09-26-yt5`).
+- `GET /me/progress` (`401` without a session) returns `{movements: {movement: [point]}, overall: [point],
+  version_breaks: [date]}`, with up to 500 `done` reports that have a score; `point` = `{id, date, score,
+  reference_version, analysis_version}`. `overall` = mean of the latest score of each movement over the last
+  30 days. `version_breaks` marks a version change: the UI shows "we refined the model" and does not
+  connect the points.
 
 `failure_reason`: `no_stroke_detected`, `low_pose_detection`, `low_stroke_confidence`, `internal_error`,
 `http_<code>`, `timeout`.
