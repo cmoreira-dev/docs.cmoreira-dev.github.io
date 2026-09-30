@@ -30,12 +30,12 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
     apagamento do vídeo. **Falta** ativar (`ANALYSIS_UPLOADS_BUCKET` no gitops) e ver os itens 33 a 35.
 - **33.** **CORS do bucket de vídeos** e **34.** **região UE**: resolvidos no PR `iac.homelab-live-infra`#36
     (bucket novo `cmoreira-dev-teupadel-analysis-uploads-eu` em `eu-west-1`, CORS só `PUT` a partir de
-    teupadel.com, bucket antigo destruído por blocos `removed`). **Falta o merge (dispara o apply: só com
-    confirmação)**, e depois `ANALYSIS_UPLOADS_BUCKET`/`ANALYSIS_UPLOADS_REGION` no gitops da API e o host do S3
-    em `connect-src` da CSP da UI. Apagar os blocos `removed` num PR seguinte. _(PR aberto, 2026-09-30)_
+    teupadel.com, bucket antigo destruído). **Apply feito em 2026-09-30** (iac#36). Faltam: ligar no gitops da
+    API (`ANALYSIS_UPLOADS_BUCKET`/`ANALYSIS_UPLOADS_REGION`, gitops#38), o host do S3 em `connect-src` da CSP
+    da UI e limpar os blocos `removed` (iac#37). _(parcial, 2026-09-30)_
 - **35.** **WebM:** o processor já decodifica (o frame extraction usa o ffmpeg; o WebM do `MediaRecorder` vem
     sem duração e `_probe_duration` já cai no fps pedido), então não há transcodificação: basta aceitar `.webm`
-    (processor#27 e api#39). Deploy do processor **antes** da API. _(PRs abertos, 2026-09-30)_
+    (processor#27 e api#39, mergeados e em produção em 2026-09-30). _(feito)_
 - **29.** **Notas por golpe e geral + gráfico de evolução** em "Minha conta" (desenho no
     [roadmap](teupadel-roadmap.md#notas-por-golpe-e-geral)): migração aditiva com `movement`, `score`,
     `reference_version`, `analysis_version`; `GET /me/progress`. _(API feita em 2026-09-30, api.ia.teupadel.com#38; UI: gráfico + selo beta em PR; falta calibrar com o professor, ver 31)_
