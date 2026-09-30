@@ -30,12 +30,12 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
     deletion. **Still missing:** turning it on (`ANALYSIS_UPLOADS_BUCKET` in gitops) and items 33 to 35.
 - **33.** **Video bucket CORS** and **34.** **EU region**: resolved in the `iac.homelab-live-infra`#36 PR (new
     bucket `cmoreira-dev-teupadel-analysis-uploads-eu` in `eu-west-1`, CORS `PUT` only from teupadel.com, old
-    bucket destroyed by `removed` blocks). **The merge is still missing (it triggers the apply: only with
-    confirmation)**, then `ANALYSIS_UPLOADS_BUCKET`/`ANALYSIS_UPLOADS_REGION` in the API's gitops and the S3
-    host in the UI CSP `connect-src`. Delete the `removed` blocks in a follow-up PR. _(PR open, 2026-09-30)_
+    bucket destroyed). **Applied on 2026-09-30** (iac#36). Still missing: turning it on in the API's gitops
+    (`ANALYSIS_UPLOADS_BUCKET`/`ANALYSIS_UPLOADS_REGION`, gitops#38), the S3 host in the UI CSP `connect-src`
+    and cleaning up the `removed` blocks (iac#37). _(partial, 2026-09-30)_
 - **35.** **WebM:** the processor already decodes it (frame extraction uses ffmpeg; `MediaRecorder` WebM has no
     duration and `_probe_duration` already falls back to the requested fps), so there is no transcoding: just
-    accept `.webm` (processor#27 and api#39). Deploy the processor **before** the API. _(PRs open, 2026-09-30)_
+    accept `.webm` (processor#27 and api#39, merged and in production on 2026-09-30). _(done)_
 - **29.** **Per-movement and overall scores + evolution chart** in "My account" (design in the
     [roadmap](teupadel-roadmap.md#scores-per-movement-and-overall)): additive migration with `movement`,
     `score`, `reference_version`, `analysis_version`; `GET /me/progress`.
