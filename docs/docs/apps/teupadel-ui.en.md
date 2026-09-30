@@ -42,7 +42,7 @@ All pages exist in 3 languages with a prefix (`/en`, `/pt-pt`, `/pt-br`,
 | `/privacy`, `/cookies`, `/terms` | `Privacy`, `Cookies`, `Terms` (on `LegalLayout`) | Legal; `Terms` is a draft without legal review (`Terms.draftNote`) |
 | `/login` | `Login.jsx` + `Turnstile.jsx` | Unified login (magic link + Google); `?ref=<code>` (referral) and `?redirect=` |
 | `/auth/verify` | `AuthVerify.jsx` | Consumes the magic-link token (`/api/auth/verify`) |
-| `/account`, `/account/delete` | `Account.jsx`, `AccountDelete.jsx` | Account, bola balance, history, deletion (GDPR) |
+| `/account`, `/account/delete` | `Account.jsx`, `ProgressChart.jsx`, `AccountDelete.jsx` | Account, bola balance, progress chart (beta), history, deletion (GDPR) |
 | `/reports/[id]` | `SavedReport.jsx` (uses `ReportView`) | Report from history, without a video player |
 
 `/` redirects (`next-intl` middleware) to the locale from `Accept-Language`, falling back to
@@ -63,6 +63,7 @@ All pages exist in 3 languages with a prefix (`/en`, `/pt-pt`, `/pt-br`,
 | `GET /api/auth/google`, `GET /api/auth/callback/google` | `/auth/google`, `/auth/callback/google` | Pass on the 3xx redirect and the OAuth state cookie |
 | `GET`/`DELETE /api/me` | `/me` | Session, balance, `referral_code`; `DELETE` removes the account |
 | `GET /api/reports`, `GET`/`DELETE /api/reports/[id]` | `/reports*` | History |
+| `GET /api/me/progress` | `/me/progress` | Score series per movement and overall ("My account" chart) |
 | `GET /health` | (local) | Kubernetes probe |
 
 Shared helpers (`apiBase`, `forwardCookieHeader`, `copySetCookie`, `forwardUserAgent`) are in
@@ -190,3 +191,13 @@ Review of 2026-09-29:
   expects rejection; run against production on 2026-09-29, all PASS. Repeat after each relevant deploy.
 - Pending: confirm in the browser that the `/login` Turnstile loads without CSP errors.
   See the [backlog](../products/teupadel-backlog.md).
+
+
+## Scores and progress chart (beta)
+
+- `ProgressChart.jsx` (in `/account`) draws, in custom SVG, one series at a time: **Overall** or one movement
+  (tabs). The pure logic is in `src/lib/progress.js`.
+- The line **does not cross** a change of `reference_version`/`analysis_version`: there is a dashed mark and
+  the note "we refined the model". With fewer than 2 analyses of a movement it shows only the score.
+- `ReportView` shows `result.scores.score` with the **beta** tag in the report summary.
+- Texts live in the `Progress` namespace of the 3 locales. Contract: [API, Scores](teupadel-api.md#scores-beta).

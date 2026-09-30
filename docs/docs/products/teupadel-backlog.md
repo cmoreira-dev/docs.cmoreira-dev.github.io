@@ -28,7 +28,7 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
     Estimativa: 7 a 10 h.
 - **29.** **Notas por golpe e geral + gráfico de evolução** em "Minha conta" (desenho no
     [roadmap](teupadel-roadmap.md#notas-por-golpe-e-geral)): migração aditiva com `movement`, `score`,
-    `reference_version`, `analysis_version`; `GET /me/progress`. _(aberto, 2026-09-30)_
+    `reference_version`, `analysis_version`; `GET /me/progress`. _(API feita em 2026-09-30, api.ia.teupadel.com#38; UI: gráfico + selo beta em PR; falta calibrar com o professor, ver 31)_
 - **30.** **PWA (Fase 2 do roadmap):** manifest, service worker só da casca, câmera guiada com MediaPipe,
     upload pré-assinado com retomada. _(aberto, 2026-09-30)_
 - **31.** **Biblioteca de referência com professor:** hoje 5 clips de YouTube, sem calibração e com licença por

@@ -43,7 +43,7 @@ Todas as páginas existem nos 3 idiomas com prefixo (`/en`, `/pt-pt`, `/pt-br`,
 | `/privacy`, `/cookies`, `/terms` | `Privacy`, `Cookies`, `Terms` (sobre `LegalLayout`) | Legal; `Terms` é rascunho sem revisão jurídica (`Terms.draftNote`) |
 | `/login` | `Login.jsx` + `Turnstile.jsx` | Login unificado (magic link + Google); `?ref=<código>` (indicação) e `?redirect=` |
 | `/auth/verify` | `AuthVerify.jsx` | Consome o token do magic link (`/api/auth/verify`) |
-| `/account`, `/account/delete` | `Account.jsx`, `AccountDelete.jsx` | Conta, saldo de bolas, histórico, exclusão (RGPD) |
+| `/account`, `/account/delete` | `Account.jsx`, `ProgressChart.jsx`, `AccountDelete.jsx` | Conta, saldo de bolas, gráfico de evolução (beta), histórico, exclusão (RGPD) |
 | `/reports/[id]` | `SavedReport.jsx` (usa `ReportView`) | Relatório do histórico, sem player de vídeo |
 
 `/` redireciona (middleware `next-intl`) para o locale de `Accept-Language`, com fallback
@@ -64,6 +64,7 @@ e `Terms.draftNote` são os outros conteúdos pendentes sinalizados na página.
 | `GET /api/auth/google`, `GET /api/auth/callback/google` | `/auth/google`, `/auth/callback/google` | Repassam o redirect 3xx e o cookie de state do OAuth |
 | `GET`/`DELETE /api/me` | `/me` | Sessão, saldo, `referral_code`; `DELETE` apaga a conta |
 | `GET /api/reports`, `GET`/`DELETE /api/reports/[id]` | `/reports*` | Histórico |
+| `GET /api/me/progress` | `/me/progress` | Séries de notas por golpe e geral (gráfico de "Minha conta") |
 | `GET /health` | (local) | Probe do Kubernetes |
 
 Os helpers comuns (`apiBase`, `forwardCookieHeader`, `copySetCookie`, `forwardUserAgent`) estão
@@ -192,3 +193,13 @@ Revisão de 2026-09-29:
   rejeição; corrido em produção em 2026-09-29, tudo PASS. Repetir depois de cada deploy relevante.
 - Pendente: confirmar no browser que o Turnstile de `/login` carrega sem erros de CSP.
   Ver [backlog](../products/teupadel-backlog.md).
+
+
+## Notas e gráfico de evolução (beta)
+
+- `ProgressChart.jsx` (em `/account`) desenha, em SVG próprio, uma série de cada vez: **Geral** ou um golpe
+  (abas). A lógica pura está em `src/lib/progress.js`.
+- A linha **não atravessa** uma mudança de `reference_version`/`analysis_version`: há uma marca tracejada e a
+  nota "refinámos o modelo". Com menos de 2 análises do golpe mostra só a nota.
+- `ReportView` mostra `result.scores.score` com o selo **beta** no resumo do relatório.
+- Textos no namespace `Progress` dos 3 idiomas. Contrato: [API, Notas](teupadel-api.md#notas-beta).

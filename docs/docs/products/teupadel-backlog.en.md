@@ -29,7 +29,7 @@ telemetry are **in production**. See [teupadel.com](../apps/teupadel.en.md).
 - **29.** **Per-movement and overall scores + evolution chart** in "My account" (design in the
     [roadmap](teupadel-roadmap.md#scores-per-movement-and-overall)): additive migration with `movement`,
     `score`, `reference_version`, `analysis_version`; `GET /me/progress`.
-    _(open, 2026-09-30)_
+    _(API done 2026-09-30, api.ia.teupadel.com#38; UI: chart + beta tag in PR; calibration with the coach still missing, see 31)_
 - **30.** **PWA (roadmap Phase 2):** manifest, shell-only service worker, guided camera with MediaPipe,
     presigned upload with resume. _(open, 2026-09-30)_
 - **31.** **Reference library with a coach:** today 5 YouTube clips, uncalibrated, license to review. Blocks
