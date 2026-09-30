@@ -228,6 +228,41 @@ processor (o LLM não entra). Desenho e calibração: [roadmap](../products/teup
 varrimento nunca estornam duas vezes. Retenção: por omissão os relatórios ficam até o utilizador
 apagar o relatório ou a conta (`REPORT_RETENTION_DAYS`, ver Anti-abuso).
 
+
+## Análises com upload direto e fila durável
+
+Fluxo novo (Fase 1 do [roadmap](../products/teupadel-roadmap.md)), ativo só com `ANALYSIS_UPLOADS_BUCKET`;
+sem ele os endpoints respondem `503 uploads_unavailable` e o `POST /analyse` antigo continua a funcionar.
+`analysis_id` é o próprio `reports.id`, então `/reports/{id}` mostra a mesma análise.
+
+1. `POST /analyses` com `{filename, size_bytes, content_type?, movement?, lang?, fps?}`: valida (extensão,
+   máx. 100 MB, idioma, golpe), exige sessão, debita 1 bola, abre um **multipart** no S3 e devolve `201`
+   com `{analysis_id, status: "uploading", upload: {part_size, parts, uploaded_parts}, bolas}`. Máx. 3
+   uploads abertos por usuário (`429`); sem saldo, `402`.
+2. `POST /analyses/{id}/parts` com `{part_numbers: [1, 2]}` devolve URLs pré-assinadas (`PUT`, válidas 1 h)
+   para o browser enviar cada parte (8 MiB; a última pode ser menor).
+3. `POST /analyses/{id}/complete` confere no S3 que todas as partes chegaram com o tamanho certo, fecha o
+   multipart e põe a análise em `queued`. Faltam partes: `409 {code: parts_missing, missing_parts}`.
+   Idempotente.
+4. `GET /analyses/{id}`: `status` = `uploading` | `queued` | `processing` | `completed` | `rejected` | `failed`.
+   Em `uploading` traz `upload.uploaded_parts` (para **retomar** o envio de onde parou). `completed` traz
+   `movement`, `score`, `phases`, `metrics`, `positives`, `improvements`, `summary`, `reference_version`,
+   `analysis_version`; `rejected` e `failed` trazem `reason` e `bola_refunded` (a bola é sempre estornada).
+
+Mapa com o banco: `done` é `completed` e `no_analysis` é `rejected`; `uploading` e `queued` aparecem como
+`processing` em `/reports*` (a UI antiga só conhece esse).
+
+**Worker** (`_queue_worker`, em todas as réplicas, só com o bucket configurado): reclama o job mais antigo com
+`SELECT ... FOR UPDATE SKIP LOCKED`, baixa o vídeo, corre o mesmo pipeline do `POST /analyse` e **apaga o
+vídeo do S3 no fim, com sucesso ou falha**. Bate `heartbeat_at` a cada 30 s. A cada 30 s um varrimento:
+`processing` sem heartbeat há mais de 2 min volta à fila (máx. 2 tentativas, depois `failed` + estorno);
+`uploading` com mais de 30 min falha (`upload_timeout`), estorna e aborta o multipart. Erro transitório
+(processor em baixo, exceção) com tentativas sobrando volta à fila e o vídeo fica para a 2.ª tentativa.
+
+**Privacidade:** o bucket não tem versionamento e a regra de ciclo de vida (IaC `s3-analysis-uploads`, 1 dia)
+apaga o que sobrar. Nunca guardar vídeo para depurar. **Pendências de infra** (ver backlog): CORS do bucket
+para o `PUT` vir do browser, e a região (o bucket está em `us-east-1`; o roadmap pede UE).
+
 ## Anti-abuso
 
 - **Boas-vindas uma vez por pessoa, mesmo após apagar a conta.** `DELETE /me` anonimiza `users`, então
@@ -315,6 +350,7 @@ Valores de produção em `gitops.teupadel.com/helm/api/values.yaml` (configMap =
 | `TERMS_VERSION` | `2026-09-draft` | Versão dos Termos gravada ao criar a conta. |
 | `DISPOSABLE_EMAIL_DOMAINS` | vazio | Domínios extra bloqueados, separados por vírgula. |
 | `MAX_INFLIGHT_ANALYSES` | `3` | Jobs simultâneos por pod. |
+| `ANALYSIS_UPLOADS_BUCKET` / `ANALYSIS_UPLOADS_PREFIX` / `ANALYSIS_UPLOADS_REGION` | (desligado) / `uploads/` / `us-east-1` | Bucket S3 dos vídeos temporários. Sem o bucket, `/analyses*` dá `503` e o worker da fila não arranca. |
 | `REPORT_RETENTION_DAYS` | `0` | `>0` apaga relatórios concluídos mais antigos; `0` = guardar. |
 | `SES_REGION` / `SES_SENDER` / `SES_CONFIGURATION_SET` | `us-east-1` / `TeuPadel <noreply@teupadel.com>` / `teupadel-transactional` | Amazon SES. |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | (nenhuma) | IAM user da API (SSM `/teupadel/ses/api`). Sem credenciais (`AWS_ROLE_ARN`/`AWS_PROFILE` também servem), `email_sender.py` fica no-op: regista e não envia, sem falhar o pedido. |
@@ -335,13 +371,15 @@ api.ia.teupadel.com/
 ├── ses_events.py         worker SQS de bounces/reclamações -> email_suppressions
 ├── maintenance.py        limpeza horária (sessões, tokens, relatórios antigos)
 ├── disposable_emails.py  domínios descartáveis
+├── analyses.py           contrato de /analyses: mapa de estados e vista pública
+├── uploads.py            S3: multipart pré-assinado, download e apagamento do vídeo
 ├── scoring.py            notas determinísticas (0-100) e séries do gráfico de evolução
 ├── telemetry.py          OTel, baggage, eventos de negócio, formatter JSON
 ├── db.py                 pool asyncpg (lazy; DATABASE_URL ou PG*)
 ├── migrate.py            `python -m migrate` (init container, advisory lock)
 ├── migrations/           0001_waitlist_signups, 0002_auth, 0003_login_ux,
 │                         0004_bolas_ledger_referral, 0005_reports, 0006_welcome_claims_terms,
-│                         0007_report_scores
+│                         0007_report_scores, 0008_analysis_queue
 ├── tests/                pytest (abuso, auth, normalização, SES, telemetria, Turnstile, integração com BD)
 ├── openapi.yaml · requirements.txt · requirements-dev.txt · Dockerfile
 └── .github/workflows/    build-push.yml (ECR), test.yml (pytest com Postgres 17, em PR)
