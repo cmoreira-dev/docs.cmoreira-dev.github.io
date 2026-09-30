@@ -28,14 +28,14 @@ telemetria estão **em produção**. Ver [teupadel.com](../apps/teupadel.md).
     **Feito em 2026-09-30 (api.ia.teupadel.com, PR da fila):** migração 0008, `POST /analyses` + partes
     pré-assinadas + `complete` + `GET /analyses/{id}`, worker com `SKIP LOCKED`, heartbeat, retry e estorno, e
     apagamento do vídeo. **Falta** ativar (`ANALYSIS_UPLOADS_BUCKET` no gitops) e ver os itens 33 a 35.
-- **33.** **CORS do bucket `cmoreira-dev-teupadel-analysis-uploads`** (IaC `s3-analysis-uploads`): sem
-    `aws_s3_bucket_cors_configuration` (PUT e cabeçalhos do upload, origem `https://www.teupadel.com`) o browser
-    não consegue enviar as partes. Merge no `iac.homelab-live-infra` dispara o apply: só com confirmação.
-    Depois, a CSP da UI precisa do host do S3 em `connect-src`. _(aberto, 2026-09-30)_
-- **34.** **Região do bucket de vídeos:** está em `us-east-1`, o roadmap pede UE (RGPD). Decidir antes de
-    ativar: recriar em `eu-west-1` (o bucket é temporário, sem dados a migrar). _(aberto, 2026-09-30)_
-- **35.** **WebM:** o Chrome Android grava WebM e o processor só aceita mp4/mov/avi/mkv. Normalizar com ffmpeg
-    (processor ou API) antes da câmera guiada. _(aberto, 2026-09-30)_
+- **33.** **CORS do bucket de vídeos** e **34.** **região UE**: resolvidos no PR `iac.homelab-live-infra`#36
+    (bucket novo `cmoreira-dev-teupadel-analysis-uploads-eu` em `eu-west-1`, CORS só `PUT` a partir de
+    teupadel.com, bucket antigo destruído por blocos `removed`). **Falta o merge (dispara o apply: só com
+    confirmação)**, e depois `ANALYSIS_UPLOADS_BUCKET`/`ANALYSIS_UPLOADS_REGION` no gitops da API e o host do S3
+    em `connect-src` da CSP da UI. Apagar os blocos `removed` num PR seguinte. _(PR aberto, 2026-09-30)_
+- **35.** **WebM:** o processor já decodifica (o frame extraction usa o ffmpeg; o WebM do `MediaRecorder` vem
+    sem duração e `_probe_duration` já cai no fps pedido), então não há transcodificação: basta aceitar `.webm`
+    (processor#27 e api#39). Deploy do processor **antes** da API. _(PRs abertos, 2026-09-30)_
 - **29.** **Notas por golpe e geral + gráfico de evolução** em "Minha conta" (desenho no
     [roadmap](teupadel-roadmap.md#notas-por-golpe-e-geral)): migração aditiva com `movement`, `score`,
     `reference_version`, `analysis_version`; `GET /me/progress`. _(API feita em 2026-09-30, api.ia.teupadel.com#38; UI: gráfico + selo beta em PR; falta calibrar com o professor, ver 31)_

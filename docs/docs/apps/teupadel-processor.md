@@ -24,7 +24,7 @@ uma análise (senão o readiness probe tiraria o pod do Service).
 
 ### POST /analyse
 
-`multipart/form-data`: `file` (`mp4`/`mov`/`avi`/`mkv`, máx. 100 MB) e query `fps` (inteiro 1-10, default 2)
+`multipart/form-data`: `file` (`mp4`/`mov`/`avi`/`mkv`/`webm`, máx. 100 MB) e query `fps` (inteiro 1-10, default 2)
 e `movement` opcional (`serve`/`forehand`/`backhand`/`volley`/`smash`). Erros: `413` (vídeo grande), `400`
 (formato, `fps` fora de 1-10, `movement` inválido, `Content-Length` inválido), `500` (falha ao processar).
 
