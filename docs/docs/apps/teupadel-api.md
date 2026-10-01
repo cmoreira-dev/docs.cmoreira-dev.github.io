@@ -204,12 +204,15 @@ processor (o LLM não entra). Desenho e calibração: [roadmap](../products/teup
   "phases": { "preparation": 80, "impact": 65, "follow_through": null },
   "metrics": { "impact": { "elbow_angle_right_deg": { "score": 70, "deviation": 11.2 } } },
   "strokes": [ { "movement": "forehand", "score": 72 } ],
-  "reference_version": "2026-09-26-yt5", "analysis_version": "1"
+  "reference_version": "2026-09-26-yt5", "analysis_version": "2"
 }
 ```
 
 - `scores` é `null` quando os desvios não dão dados suficientes (fase sem 50% das features, ou golpe sem
-  50% do peso das fases); a nota nunca é inventada.
+  20% do peso das fases; v2, ver abaixo); a nota nunca é inventada.
+- v2 (2026-10-01): a 2 fps o impacto (±0,15 s) tem 1 frame; o processor compara esse ponto com a média da
+  referência (`single_point: true`) e basta uma fase com dados para haver nota. Antes, vídeos curtos davam
+  sempre `scores: null`. O resultado guarda também `stroke_analysis` (desvios por golpe) para depurar.
 - As colunas `reports.score`, `reference_version` e `analysis_version` (migration 0007) espelham o bloco
   para o gráfico não ler o JSON de cada relatório.
 - Tolerâncias e pesos são **provisórios** (biblioteca de 5 clips sem calibração). Mudar o cálculo = subir

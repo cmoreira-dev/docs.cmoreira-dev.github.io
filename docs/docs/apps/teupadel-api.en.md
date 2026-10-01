@@ -209,12 +209,15 @@ deviations (the LLM is not involved). Design and calibration:
   "phases": { "preparation": 80, "impact": 65, "follow_through": null },
   "metrics": { "impact": { "elbow_angle_right_deg": { "score": 70, "deviation": 11.2 } } },
   "strokes": [ { "movement": "forehand", "score": 72 } ],
-  "reference_version": "2026-09-26-yt5", "analysis_version": "1"
+  "reference_version": "2026-09-26-yt5", "analysis_version": "2"
 }
 ```
 
 - `scores` is `null` when the deviations do not give enough data (a phase without 50% of the features, or a
-  stroke without 50% of the phase weight); the score is never invented.
+  stroke without 20% of the phase weight; v2, see below); the score is never invented.
+- v2 (2026-10-01): at 2 fps the impact window (±0.15 s) has 1 frame; the processor compares that point to the
+  reference mean (`single_point: true`) and one phase with data is enough for a score. Before, short videos
+  always got `scores: null`. The result also stores `stroke_analysis` (per-stroke deviations) for debugging.
 - The columns `reports.score`, `reference_version` and `analysis_version` (migration 0007) mirror the block
   so the chart does not read each report's JSON.
 - Tolerances and weights are **provisional** (5-clip uncalibrated library). Changing the calculation = bump
