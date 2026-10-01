@@ -199,7 +199,7 @@ Review of 2026-09-29:
 - `ProgressChart.jsx` (in `/account`) draws, in custom SVG, one series at a time: **Overall** or one movement
   (tabs). The pure logic is in `src/lib/progress.js`.
 - The line **does not cross** a change of `reference_version`/`analysis_version`: there is a dashed mark and
-  the note "we refined the model". With fewer than 2 analyses of a movement it shows only the score.
+  the note "we refined the model". The chart (0-100 axes and grid) **is always shown**, even with no scores (30-day window, with a "no scores yet" message), and fills in with each analysis; with 1 only the dot appears.
 - `ReportView` shows `result.scores.score` with the **beta** tag in the report summary.
 - Texts live in the `Progress` namespace of the 3 locales. Contract: [API, Scores](teupadel-api.md#scores-beta).
 

@@ -201,7 +201,7 @@ Revisão de 2026-09-29:
 - `ProgressChart.jsx` (em `/account`) desenha, em SVG próprio, uma série de cada vez: **Geral** ou um golpe
   (abas). A lógica pura está em `src/lib/progress.js`.
 - A linha **não atravessa** uma mudança de `reference_version`/`analysis_version`: há uma marca tracejada e a
-  nota "refinámos o modelo". Com menos de 2 análises do golpe mostra só a nota.
+  nota "refinámos o modelo". O gráfico (eixos 0-100 e grade) **aparece sempre**, mesmo sem notas (janela de 30 dias, com a mensagem "ainda não há notas"), e enche a cada análise; com 1 só aparece o ponto.
 - `ReportView` mostra `result.scores.score` com o selo **beta** no resumo do relatório.
 - Textos no namespace `Progress` dos 3 idiomas. Contrato: [API, Notas](teupadel-api.md#notas-beta).
 
