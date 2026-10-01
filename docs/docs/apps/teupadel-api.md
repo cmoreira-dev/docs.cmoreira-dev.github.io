@@ -177,6 +177,15 @@ créditos e estornos idempotentes. Movimentos e valores em [teupadel.md](teupade
 - **Indicação:** link `/login?ref=<código>`; o código (`^[A-Za-z0-9]{6,16}$`) viaja em `email_tokens.referral_code`
   (magic link) ou na sessão do OAuth (Google) e é aplicado quando a conta **nova** confirma o e-mail pela
   primeira vez e recebe boas-vindas. Ignora código inválido, autoindicação, indicador apagado e contas já indicadas.
+- **Ajuste manual:** `grant_bolas.py` (dentro do pod da API) concede ou retira bolas por `bolas.grant`, que grava
+  o ledger e o saldo na mesma transação (`reason` `manual_adjustment`). Sem `--apply` só simula; `--ref` torna o
+  crédito idempotente; `--audit` lista saldos que não batem com o ledger. Nunca inserir em `bola_ledger` à mão
+  (aconteceu em 2026-09-30: o saldo em cache ficou desalinhado e a UI não mostrou as bolas).
+
+  ```
+  kubectl -n teupadel exec deploy/teupadel-api -- python grant_bolas.py EMAIL 10 --ref campanha-x --apply
+  kubectl -n teupadel exec deploy/teupadel-api -- python grant_bolas.py --audit
+  ```
 
 ## Relatórios assíncronos
 

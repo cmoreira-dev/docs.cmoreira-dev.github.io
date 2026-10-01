@@ -181,6 +181,16 @@ credits and refunds idempotent. Movements and amounts are in
   (magic link) or in the OAuth session (Google) and is applied when the **new** account confirms its e-mail
   for the first time and receives the welcome. Invalid codes, self-referral, a deleted referrer and already
   referred accounts are ignored.
+- **Manual adjustment:** `grant_bolas.py` (inside the API pod) grants or removes bolas through `bolas.grant`,
+  which writes the ledger and the balance in one transaction (`reason` `manual_adjustment`). Without `--apply`
+  it only simulates; `--ref` makes the credit idempotent; `--audit` lists balances that do not match the ledger.
+  Never insert into `bola_ledger` by hand (it happened on 2026-09-30: the cached balance drifted and the UI did
+  not show the bolas).
+
+  ```
+  kubectl -n teupadel exec deploy/teupadel-api -- python grant_bolas.py EMAIL 10 --ref campaign-x --apply
+  kubectl -n teupadel exec deploy/teupadel-api -- python grant_bolas.py --audit
+  ```
 
 ## Asynchronous reports
 
