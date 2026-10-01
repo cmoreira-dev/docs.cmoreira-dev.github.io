@@ -43,7 +43,7 @@ Todas as páginas existem nos 3 idiomas com prefixo (`/en`, `/pt-pt`, `/pt-br`,
 | `/privacy`, `/cookies`, `/terms` | `Privacy`, `Cookies`, `Terms` (sobre `LegalLayout`) | Legal; `Terms` é rascunho sem revisão jurídica (`Terms.draftNote`) |
 | `/login` | `Login.jsx` + `Turnstile.jsx` | Login unificado (magic link + Google); `?ref=<código>` (indicação) e `?redirect=` |
 | `/auth/verify` | `AuthVerify.jsx` | Consome o token do magic link (`/api/auth/verify`) |
-| `/account`, `/account/delete` | `Account.jsx`, `ProgressChart.jsx`, `AccountDelete.jsx` | Conta, saldo de bolas, gráfico de evolução (beta), histórico, exclusão (RGPD) |
+| `/account`, `/account/delete` | `Account.jsx`, `ProgressChart.jsx`, `DeleteAccountDialog.jsx`, `AccountDelete.jsx` | Conta redesenhada: saldo, última nota, evolução por golpe (beta), relatórios prontos, extrato de bolas, convite, exclusão (RGPD, em modal) |
 | `/reports/[id]` | `SavedReport.jsx` (usa `ReportView`) | Relatório do histórico, sem player de vídeo |
 
 `/` redireciona (middleware `next-intl`) para o locale de `Accept-Language`, com fallback
@@ -198,10 +198,12 @@ Revisão de 2026-09-29:
 
 ## Notas e gráfico de evolução (beta)
 
-- `ProgressChart.jsx` (em `/account`) desenha, em SVG próprio, uma série de cada vez: **Geral** ou um golpe
-  (abas). A lógica pura está em `src/lib/progress.js`.
+- `ProgressChart.jsx` (em `/account`) desenha, em SVG próprio, uma série de cada vez: um golpe
+  (abas com contagem; sem série "Geral"). A lógica pura está em `src/lib/progress.js`.
 - A linha **não atravessa** uma mudança de `reference_version`/`analysis_version`: há uma marca tracejada e a
-  nota "refinámos o modelo". O gráfico (eixos 0-100 e grade) **aparece sempre**, mesmo sem notas (janela de 30 dias, com a mensagem "ainda não há notas"), e enche a cada análise; com 1 só aparece o ponto.
+  nota "refinámos o modelo". Com menos de 2 análises do golpe mostra um estado vazio com link para analisar.
+- "Minha conta" (`Account.jsx`) usa `/reports` (só `done` na lista; `no_analysis`/`failed` numa linha recolhida, bolas devolvidas), `/me/progress` e `/me/ledger` (proxy `/api/me/ledger`; ver `bola_ledger` na API). Nomes de golpes vêm de `UploadZone.movement_*` em todos os locales; o aviso "exemplo de relatório" só aparece em `isSample`.
+- Relatório guardado (sem vídeo): `skeleton/SkeletonReplay.jsx` reproduz o golpe só com o esqueleto, a partir de `pose_frames` (que ficam para sempre com o relatório; nenhum pixel do vídeo é guardado). Interpola entre frames, enquadra o jogador, tem play/pausa, barra e salto para o impacto; sem autoplay com `prefers-reduced-motion`.
 - `ReportView` mostra `result.scores.score` com o selo **beta** no resumo do relatório.
 - Textos no namespace `Progress` dos 3 idiomas. Contrato: [API, Notas](teupadel-api.md#notas-beta).
 
@@ -217,9 +219,16 @@ Revisão de 2026-09-29:
 - `InstallApp.jsx` (em `/account`): botão "Instalar" no Android/Chrome (`beforeinstallprompt`) e, no iOS,
   as instruções "Partilhar → Adicionar ao ecrã principal" (necessário também para o Web Push). Já instalada:
   não aparece.
-- **Ainda não feito (Fase 2 do [roadmap](../products/teupadel-roadmap.md)):** câmera guiada (MediaPipe) e upload
-  pré-assinado. A câmera exige mudar a CSP (WASM do MediaPipe) e o `Permissions-Policy`, hoje `camera=()`,
-  para `camera=(self)`.
+- **Câmera guiada (Fase 2):** `GuidedCamera.jsx` pede câmera traseira a 720p/30 fps sem áudio, mostra silhueta,
+  nível do telemóvel e zona de golpe, e usa `@mediapipe/tasks-vision` localmente em modo VIDEO (~10 fps) para
+  validar cabeça, os dois tornozelos, escala e centro. Uma posição estável durante 1 s inicia a contagem 3–2–1;
+  a gravação para aos 10 s e entrega `.mp4` no Safari ou `.webm` nos outros browsers ao fluxo de upload existente.
+  Se a câmera ou o modelo falhar, há gravação manual e `<input capture="environment">` como fallback. Os limiares
+  e as zonas por golpe são provisórios até existir a biblioteca de referência do professor (backlog #30).
+- `public/mediapipe/pose_landmarker_lite.task` é commitado para o build offline e o `prebuild` copia o WASM da
+  dependência para `public/mediapipe/`; a licença Apache-2.0 está registada em `public/mediapipe/NOTICE.txt`.
+- A CSP inclui `'wasm-unsafe-eval'` e `Permissions-Policy` abre apenas `camera=(self)`; microfone e geolocalização
+  continuam desligados. O service worker continua sem cachear vídeos, relatórios ou MediaPipe.
 
 
 ## Upload direto para o S3 (por partes)

@@ -42,7 +42,7 @@ All pages exist in 3 languages with a prefix (`/en`, `/pt-pt`, `/pt-br`,
 | `/privacy`, `/cookies`, `/terms` | `Privacy`, `Cookies`, `Terms` (on `LegalLayout`) | Legal; `Terms` is a draft without legal review (`Terms.draftNote`) |
 | `/login` | `Login.jsx` + `Turnstile.jsx` | Unified login (magic link + Google); `?ref=<code>` (referral) and `?redirect=` |
 | `/auth/verify` | `AuthVerify.jsx` | Consumes the magic-link token (`/api/auth/verify`) |
-| `/account`, `/account/delete` | `Account.jsx`, `ProgressChart.jsx`, `AccountDelete.jsx` | Account, bola balance, progress chart (beta), history, deletion (GDPR) |
+| `/account`, `/account/delete` | `Account.jsx`, `ProgressChart.jsx`, `DeleteAccountDialog.jsx`, `AccountDelete.jsx` | Redesigned account: balance, latest score, per-stroke progress (beta), ready reports, ball ledger, invite, deletion (GDPR, in a modal) |
 | `/reports/[id]` | `SavedReport.jsx` (uses `ReportView`) | Report from history, without a video player |
 
 `/` redirects (`next-intl` middleware) to the locale from `Accept-Language`, falling back to
@@ -196,10 +196,12 @@ Review of 2026-09-29:
 
 ## Scores and progress chart (beta)
 
-- `ProgressChart.jsx` (in `/account`) draws, in custom SVG, one series at a time: **Overall** or one movement
+- `ProgressChart.jsx` (in `/account`) draws, in custom SVG, one series at a time: one stroke (tabs with counts; no "Overall" series)
   (tabs). The pure logic is in `src/lib/progress.js`.
 - The line **does not cross** a change of `reference_version`/`analysis_version`: there is a dashed mark and
-  the note "we refined the model". The chart (0-100 axes and grid) **is always shown**, even with no scores (30-day window, with a "no scores yet" message), and fills in with each analysis; with 1 only the dot appears.
+  the note "we refined the model". With fewer than 2 analyses of a movement it shows an empty state with a link to analyse.
+- "My account" (`Account.jsx`) uses `/reports` (only `done` in the list; `no_analysis`/`failed` in one collapsed row, balls returned), `/me/progress` and `/me/ledger` (proxy `/api/me/ledger`). Stroke names come from `UploadZone.movement_*` in every locale; the "sample report" notice only shows with `isSample`.
+- Saved report (no video): `skeleton/SkeletonReplay.jsx` replays the stroke with the skeleton only, from `pose_frames` (kept with the report for good; no video pixels are stored). It interpolates between frames, frames the player, has play/pause, a scrubber and a jump to impact; no autoplay under `prefers-reduced-motion`.
 - `ReportView` shows `result.scores.score` with the **beta** tag in the report summary.
 - Texts live in the `Progress` namespace of the 3 locales. Contract: [API, Scores](teupadel-api.md#scores-beta).
 
@@ -214,9 +216,16 @@ Review of 2026-09-29:
   `VERSION` in `sw.js`. `next.config.js` serves `/sw.js` with `Cache-Control: no-cache`.
 - `InstallApp.jsx` (in `/account`): an "Install" button on Android/Chrome (`beforeinstallprompt`) and, on iOS,
   the "Share → Add to Home Screen" instructions (also required for Web Push). Already installed: hidden.
-- **Not done yet (Phase 2 of the [roadmap](../products/teupadel-roadmap.md)):** guided camera (MediaPipe) and
-  presigned upload. The camera needs a CSP change (MediaPipe WASM) and `Permissions-Policy`, currently
-  `camera=()`, to become `camera=(self)`.
+- **Guided camera (Phase 2):** `GuidedCamera.jsx` requests the rear camera at 720p/30 fps without audio, shows a
+  silhouette, phone level and stroke zone, and runs local `@mediapipe/tasks-vision` VIDEO mode at about 10 fps to
+  validate the head, both ankles, scale and centre. A stable position for 1 s starts a 3–2–1 countdown; recording
+  stops at 10 s and hands `.mp4` to Safari or `.webm` to other browsers through the existing upload flow. If the
+  camera or model fails, manual recording and `<input capture="environment">` remain available. Thresholds and
+  stroke zones are provisional until the coach reference library exists (backlog #30).
+- `public/mediapipe/pose_landmarker_lite.task` is committed for offline builds and `prebuild` copies the dependency
+  WASM into `public/mediapipe/`; the Apache-2.0 license is recorded in `public/mediapipe/NOTICE.txt`.
+- CSP includes `'wasm-unsafe-eval'` and `Permissions-Policy` permits only `camera=(self)`; microphone and
+  geolocation remain disabled. The service worker still caches no video, reports or MediaPipe assets.
 
 
 ## Direct upload to S3 (in parts)
