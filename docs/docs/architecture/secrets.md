@@ -41,8 +41,9 @@ flowchart LR
   path**: hoje `parameter/homelab/*` e `parameter/teupadel/*` (segredos do
   produto: Google OAuth, chave de sessão, SES). Um path fora da policy faz o
   `ExternalSecret` falhar (`SecretSyncedError`, `AccessDenied`) e o app perde
-  essas variáveis em silêncio. Essa policy foi criada à mão e ainda não está
-  em nenhum repo de IaC.
+  essas variáveis em silêncio. A policy é gerenciada em
+  `iac.homelab-live-infra` (`aws/cmoreira-dev/us-east-1/iam-external-secrets`,
+  `ssm_path_prefixes`).
 - O Secret gerado vive só no namespace da app; não há um Secret compartilhado
   entre apps.
 - Apps sem segredo real (como `api.ia.local-sara`, um scraper público sem chave
@@ -72,16 +73,18 @@ rotacionar.
 
 | Ferramenta | Mecanismo |
 |---|---|
-| ArgoCD | SSO via Dex, conectado ao Entra ID |
+| ArgoCD | SSO via Dex, conectado ao Entra ID (grupo `Platform Engineering`) |
 | Headlamp | OIDC direto contra o Entra ID (`headlamp.config.oidc`) |
+| Backstage | Provider Microsoft nativo |
+| LiteLLM (UI) | SSO Microsoft nativo |
+| n8n | oauth2-proxy (Entra ID) na frente do editor |
 | Conta AWS | Login federado via Entra ID |
 
-Esse padrão é reservado às duas nuvens (AWS e o próprio Entra ID/Azure) e às
-ferramentas que dão acesso amplo ao cluster (ArgoCD, Headlamp). Tudo o mais —
-as aplicações (`teupadel.com`, Sara) e os addons sem console administrativo —
-é infraestrutura local, sem integração com o Entra ID: ou não expõem login
-nenhum, ou não são superfícies que um operador precise autenticar para
-acessar.
+Esse padrão vale para as duas nuvens (AWS e o próprio Entra ID/Azure) e para as
+ferramentas operacionais (ArgoCD, Headlamp, Backstage, LiteLLM, n8n). Detalhes,
+registros no Entra e rotação de segredos em [Autenticação](auth.md). As
+aplicações de produto (`teupadel.com`, Sara) não usam o Entra ID: o teupadel tem
+login próprio para clientes, e o Sara é um scraper público sem login.
 
 ## Resumo por tipo de credencial
 

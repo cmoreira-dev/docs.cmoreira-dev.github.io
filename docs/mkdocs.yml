@@ -42,6 +42,7 @@ plugins:
             Cluster Kubernetes (Talos): Kubernetes Cluster (Talos)
             Rede & Ingress: Networking & Ingress
             Secrets & Segurança: Secrets & Security
+            Autenticação (Entra ID): Authentication (Entra ID)
             Infraestrutura como Código: Infrastructure as Code
             Dois níveis de IaC: Two tiers of IaC
             Terragrunt (live-infra): Terragrunt (live-infra)
@@ -55,6 +56,7 @@ plugins:
             Chart genérico de apps (generic-app): Generic app chart (generic-app)
             Template de novo app: New app template
             Backstage: Backstage
+            Backups do Postgres (CNPG): Postgres backups (CNPG)
             Aplicações: Applications
             teupadel.com: teupadel.com
             Sara: Sara
@@ -93,6 +95,7 @@ nav:
       - Cluster Kubernetes (Talos): architecture/cluster.md
       - Rede & Ingress: architecture/networking.md
       - Secrets & Segurança: architecture/secrets.md
+      - Autenticação (Entra ID): architecture/auth.md
   - Infraestrutura como Código:
       - Dois níveis de IaC: iac/tiers.md
       - Terragrunt (live-infra): iac/terragrunt.md
@@ -106,7 +109,9 @@ nav:
       - Chart genérico de apps (generic-app): kubernetes/generic-app-chart.md
       - Template de novo app: gitops/template.md
       - Backstage: gitops/backstage.md
+      - Backups do Postgres (CNPG): gitops/backups.md
   - Aplicações:
+      - n8n: apps/n8n.md
       - teupadel.com:
           - Visão geral: apps/teupadel.md
           - API: apps/teupadel-api.md

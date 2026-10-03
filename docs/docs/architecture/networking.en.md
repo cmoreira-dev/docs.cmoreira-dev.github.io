@@ -24,7 +24,7 @@ The cluster exposes two `Gateway` resources (Gateway API, defined in
 
 | Gateway | Domain | Used for |
 |---|---|---|
-| `nginx-gateway-cmoreira-dev` | `*.cmoreira.dev` | internal tools and Sara (`local.cmoreira.dev`, `argocd.cmoreira.dev`, `headlamp.cmoreira.dev`, `llm.cmoreira.dev`) |
+| `nginx-gateway-cmoreira-dev` | `*.cmoreira.dev` | internal tools and Sara (`local.cmoreira.dev`, `argocd.cmoreira.dev`, `headlamp.cmoreira.dev`, `llm.cmoreira.dev`, `n8n.cmoreira.dev`) |
 | `nginx-gateway-teupadel-com` | `*.teupadel.com` | the public teupadel.com product (`www.teupadel.com` — the API is internal, see below) |
 
 Each app declares its own `HTTPRoute` (via the
@@ -53,6 +53,7 @@ ingress:
   - hostname: argocd.cmoreira.dev     → nginx-gateway-cmoreira-dev
   - hostname: headlamp.cmoreira.dev   → nginx-gateway-cmoreira-dev
   - hostname: llm.cmoreira.dev        → nginx-gateway-cmoreira-dev
+  - hostname: n8n.cmoreira.dev        → nginx-gateway-cmoreira-dev
   - hostname: www.teupadel.com        → nginx-gateway-teupadel-com
   - service: http_status:404          # fallback
 ```
