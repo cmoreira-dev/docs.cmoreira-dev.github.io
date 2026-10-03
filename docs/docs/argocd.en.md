@@ -9,8 +9,11 @@ mechanism, end to end.
 
 Installed via Helm (official `argo/argo-cd` chart) by the Ansible playbooks
 at cluster bootstrap — see [Cluster bootstrap](iac/bootstrap.md). SSO is
-configured via Dex, connected to Microsoft Entra ID — there's no local
-username/password in everyday use.
+configured via Dex, connected to Microsoft Entra ID (only members of the
+`Platform Engineering` group; the client secret comes from SSM through an
+`ExternalSecret`) — there's no local username/password in everyday use.
+Current version: chart 10.9.6, Argo CD v3.5.3. Details in
+[Authentication](architecture/auth.md).
 
 Exposed at `argocd.cmoreira.dev`, behind the same Cloudflare Tunnel →
 Gateway API chain described in [Networking & Ingress](architecture/networking.md).

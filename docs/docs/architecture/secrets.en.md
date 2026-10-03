@@ -42,8 +42,9 @@ flowchart LR
   prefix**: currently `parameter/homelab/*` and `parameter/teupadel/*` (product
   secrets: Google OAuth, session key, SES). A path outside the policy makes the
   `ExternalSecret` fail (`SecretSyncedError`, `AccessDenied`) and the app
-  silently loses those variables. The policy was created by hand and is not yet
-  in any IaC repo.
+  silently loses those variables. The policy is managed in
+  `iac.homelab-live-infra` (`aws/cmoreira-dev/us-east-1/iam-external-secrets`,
+  `ssm_path_prefixes`).
 - The generated Secret lives only in the app's own namespace; there's no
   Secret shared between apps.
 - Apps with no real secret (like `api.ia.local-sara`, a public scraper with
@@ -73,16 +74,18 @@ rotate.
 
 | Tool | Mechanism |
 |---|---|
-| ArgoCD | SSO via Dex, connected to Entra ID |
+| ArgoCD | SSO via Dex, connected to Entra ID (group `Platform Engineering`) |
 | Headlamp | Direct OIDC against Entra ID (`headlamp.config.oidc`) |
+| Backstage | Native Microsoft provider |
+| LiteLLM (UI) | Native Microsoft SSO |
+| n8n | oauth2-proxy (Entra ID) in front of the editor |
 | AWS account | Federated login via Entra ID |
 
-This pattern is reserved for the two clouds (AWS and Entra ID/Azure itself)
-and for the tools that grant broad access to the cluster (ArgoCD, Headlamp).
-Everything else — the applications (`teupadel.com`, Sara) and the addons
-with no admin console — is local infrastructure, with no Entra ID
-integration: either they expose no login at all, or they aren't surfaces an
-operator needs to authenticate against.
+This pattern covers the two clouds (AWS and Entra ID/Azure itself) and the
+operational tools (ArgoCD, Headlamp, Backstage, LiteLLM, n8n). Details, Entra
+registrations and secret rotation in [Authentication](auth.md). The product
+applications (`teupadel.com`, Sara) do not use Entra ID: teupadel has its own
+customer login, and Sara is a public scraper with no login.
 
 ## Summary by credential type
 

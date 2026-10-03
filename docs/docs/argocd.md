@@ -8,8 +8,10 @@ todo o resto do fluxo de deploy é git push + reconciliação automática. Ver
 
 Instalado via Helm (chart oficial `argo/argo-cd`) pelos playbooks Ansible no
 bootstrap do cluster — ver [Bootstrap do cluster](iac/bootstrap.md). SSO
-configurado via Dex, conectado ao Microsoft Entra ID — não há usuário/senha
-local de uso corrente.
+configurado via Dex, conectado ao Microsoft Entra ID (só membros do grupo
+`Platform Engineering`; o secret do cliente vem do SSM por `ExternalSecret`) —
+não há usuário/senha local de uso corrente. Versão atual: chart 10.9.6, ArgoCD
+v3.5.3. Detalhes em [Autenticação](architecture/auth.md).
 
 Exposto em `argocd.cmoreira.dev`, atrás da mesma cadeia Cloudflare Tunnel →
 Gateway API descrita em [Rede & Ingress](architecture/networking.md).
